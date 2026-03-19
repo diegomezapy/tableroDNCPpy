@@ -1,369 +1,1054 @@
 """
-dashboard.py — Tablero de Contrataciones Públicas DNCP Paraguay
-================================================================
-Lee ÚNICAMENTE los Parquet pre-agregados (pocos MB) generados por
-processor.py. Nunca toca los CSV crudos en tiempo de ejecución.
-
-Flujo recomendado:
-  1. python downloader.py --years 2025
-  2. python processor.py  --years 2025
-  3. streamlit run dashboard.py
+dashboard.py — Tablero de Transparencia en Contrataciones Públicas · Paraguay
+Lee directamente los Parquet del cache/ incluidos en el repo.
+Compatible con Streamlit Community Cloud.
 """
 
 import streamlit as st
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
 from pathlib import Path
 
-from processor import (
-    kpis_generales,
-    get_evolucion_anual_conv,
-    get_evolucion_mensual_conv,
-    get_top_entidades,
-    get_modalidades,
-    get_muestra_conv,
-    get_top_proveedores,
-    get_evolucion_mensual_adj,
-    get_muestra_adj,
-    get_evolucion_anual_cont,
-    get_evolucion_mensual_cont,
-    get_muestra_cont,
-    process_all,
-    CACHE_DIR,
-    DATA_DIR,
-)
-from downloader import download_all, MODULES
+ROOT      = Path(__file__).parent
+CACHE_DIR = ROOT / "cache"
 
+def _pq(module: str, name: str) -> pd.DataFrame:
+    p = CACHE_DIR / module / f"{name}.parquet"
+    return pd.read_parquet(p) if p.exists() else pd.DataFrame()
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Página
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── Configuración ────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="DNCP Paraguay — Tablero de Contrataciones",
-    page_icon="🇵🇾",
-    layout="wide",
+    page_title="Transparencia Pública Paraguay — Contrataciones",
+    page_icon="🇵🇾", layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CSS
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── CSS Profesional ─────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-html, body, [class*="css"] { font-family: 'Inter', sans-serif; }
-.kpi-card {
-    background: linear-gradient(135deg,#1e2130,#252840);
-    border:1px solid #2e3250; border-radius:12px;
-    padding:18px 22px; margin-bottom:8px; position:relative; overflow:hidden;
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+html, body, [class*="css"], [class*="st-"] {
+    font-family: 'Inter', sans-serif !important;
 }
-.kpi-card::before {
-    content:''; position:absolute; top:0; left:0; right:0; height:3px;
-    background:linear-gradient(90deg,#4f6ef7,#a78bfa); border-radius:12px 12px 0 0;
+
+/* Fondo principal */
+.stApp { background: #f0f4f8; }
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #1a237e 0%, #283593 60%, #1565c0 100%) !important;
 }
-.kpi-label { font-size:11px; font-weight:600; color:#8892b0; letter-spacing:.08em; text-transform:uppercase; margin-bottom:5px; }
-.kpi-value { font-size:24px; font-weight:700; color:#e2e8f0; }
-.kpi-sub   { font-size:11px; color:#4ade80; margin-top:3px; }
-.section-title {
-    font-size:17px; font-weight:600; color:#a5b4fc;
-    border-left:4px solid #4f6ef7; padding-left:12px; margin:22px 0 10px 0;
+[data-testid="stSidebar"] * { color: #e8eaf6 !important; }
+[data-testid="stSidebar"] .stMarkdown h2,
+[data-testid="stSidebar"] .stMarkdown h3 { color: #ffffff !important; font-weight: 700; }
+[data-testid="stSidebar"] a { color: #90caf9 !important; }
+[data-testid="stSidebar"] hr { border-color: rgba(255,255,255,0.2) !important; }
+[data-testid="stSidebar"] .stInfo {
+    background: rgba(255,255,255,0.12) !important;
+    border: 1px solid rgba(255,255,255,0.25) !important;
+    border-radius: 10px;
+    color: #e8eaf6 !important;
 }
+
+/* Header principal */
+.main-header {
+    background: linear-gradient(135deg, #1a237e 0%, #1565c0 50%, #0288d1 100%);
+    padding: 28px 36px 24px;
+    border-radius: 16px;
+    margin-bottom: 28px;
+    box-shadow: 0 4px 24px rgba(26,35,126,0.18);
+}
+.main-header h1 {
+    color: #ffffff !important;
+    font-size: 28px !important;
+    font-weight: 700 !important;
+    margin: 0 0 6px 0 !important;
+    letter-spacing: -0.5px;
+}
+.main-header p {
+    color: rgba(255,255,255,0.82) !important;
+    font-size: 14px !important;
+    margin: 0 !important;
+}
+
+/* Tarjetas KPI */
+.kcard {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px 24px 18px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border-left: 5px solid #1565c0;
+    margin-bottom: 12px;
+    transition: box-shadow .2s;
+}
+.kcard:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.13); }
+.kcard.warn { border-left-color: #ef6c00; }
+.kcard.danger { border-left-color: #c62828; }
+.kcard.ok { border-left-color: #2e7d32; }
+.klbl {
+    font-size: 11px;
+    font-weight: 600;
+    color: #607d8b;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+.kval {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a237e;
+    line-height: 1.1;
+}
+.ksub {
+    font-size: 12px;
+    color: #78909c;
+    margin-top: 4px;
+}
+
+/* Títulos de sección */
+.sec-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1a237e;
+    padding: 10px 0 6px 14px;
+    border-left: 4px solid #1565c0;
+    margin: 20px 0 12px 0;
+    letter-spacing: -0.2px;
+}
+
+/* Panel de contenido (blanco) */
+.panel {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    margin-bottom: 16px;
+}
+
+/* Badges de alerta */
+.badge-critico { background:#fde8e8;color:#c62828;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600; }
+.badge-alto    { background:#fff3e0;color:#e65100;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600; }
+.badge-ok      { background:#e8f5e9;color:#2e7d32;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600; }
+
+/* Tabs */
+[data-baseweb="tab-list"] { background: #e8eef5 !important; border-radius: 12px; padding: 4px; }
+[data-baseweb="tab"] { border-radius: 8px !important; font-weight: 500 !important; color: #455a64 !important; }
+[aria-selected="true"][data-baseweb="tab"] {
+    background: #1565c0 !important;
+    color: #ffffff !important;
+}
+
+/* Dataframe */
+[data-testid="stDataFrame"] { border-radius: 10px; overflow: hidden; }
 </style>
 """, unsafe_allow_html=True)
 
-BG, GRID, TEXT = "#0f1117", "#1e2130", "#e2e8f0"
-PALETTE = px.colors.qualitative.Bold
-BASE_LAYOUT = dict(
-    paper_bgcolor=BG, plot_bgcolor=GRID,
-    font=dict(family="Inter", color=TEXT, size=12),
-    margin=dict(l=20, r=20, t=40, b=20),
-    xaxis=dict(gridcolor="#2e3250", linecolor="#2e3250"),
-    yaxis=dict(gridcolor="#2e3250", linecolor="#2e3250"),
-)
+# ─── Colores para gráficos (tema claro profesional) ─────────────────────────
+BG      = "#ffffff"
+GRID    = "#f5f7fa"
+TXT     = "#1a237e"
+SUBTXT  = "#546e7a"
+PAL     = ["#1565c0","#2196f3","#26c6da","#43a047","#ffa726","#ef5350","#ab47bc","#5c6bc0"]
+PAL_SEQ = "Blues"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Helpers
-# ─────────────────────────────────────────────────────────────────────────────
-def fmt_gs(v):
+def chart_layout(**kwargs):
+    return dict(
+        paper_bgcolor=BG, plot_bgcolor=GRID,
+        font=dict(family="Inter", color=SUBTXT, size=12),
+        margin=dict(l=16, r=16, t=44, b=16),
+        xaxis=dict(gridcolor="#e8eef5", linecolor="#cfd8dc", tickfont=dict(color=SUBTXT)),
+        yaxis=dict(gridcolor="#e8eef5", linecolor="#cfd8dc", tickfont=dict(color=SUBTXT)),
+        title_font=dict(color=TXT, size=14, family="Inter"),
+        **kwargs
+    )
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+def fmtg(v):
     if not v: return "₲ 0"
-    if v >= 1e12: return f"₲ {v/1e12:.1f} B"
-    if v >= 1e9:  return f"₲ {v/1e9:.1f} MM"
-    if v >= 1e6:  return f"₲ {v/1e6:.1f} M"
+    if v >= 1e12: return f"₲ {v/1e12:.1f}B"
+    if v >= 1e9:  return f"₲ {v/1e9:.1f}MM"
+    if v >= 1e6:  return f"₲ {v/1e6:.1f}M"
     return f"₲ {v:,.0f}"
 
-def kpi(label, value, sub=""):
-    val = fmt_gs(value) if isinstance(value, float) and value > 9999 else f"{value:,}" if isinstance(value, (int,float)) else str(value)
-    st.markdown(f"""<div class="kpi-card"><div class="kpi-label">{label}</div>
-    <div class="kpi-value">{val}</div>
-    {"<div class='kpi-sub'>"+sub+"</div>" if sub else ""}</div>""", unsafe_allow_html=True)
+def kpi(label, value, sub="", variant=""):
+    if isinstance(value, float) and value > 9999:
+        val = fmtg(value)
+    elif isinstance(value, (int, float)):
+        val = f"{int(value):,}"
+    else:
+        val = str(value)
+    sub_html = f"<div class='ksub'>{sub}</div>" if sub else ""
+    st.markdown(
+        f"<div class='kcard {variant}'>"
+        f"<div class='klbl'>{label}</div>"
+        f"<div class='kval'>{val}</div>"
+        f"{sub_html}</div>",
+        unsafe_allow_html=True
+    )
 
-def section(t): st.markdown(f'<div class="section-title">{t}</div>', unsafe_allow_html=True)
+def sec(t):
+    st.markdown(f"<div class='sec-title'>{t}</div>", unsafe_allow_html=True)
 
-def empty_fig(msg="Sin datos"):
+def emptyfig(key, msg="Sin datos disponibles"):
     fig = go.Figure()
     fig.add_annotation(text=msg, x=.5, y=.5, showarrow=False,
-                       font=dict(size=15, color="#8892b0"), xref="paper", yref="paper")
-    fig.update_layout(**BASE_LAYOUT, height=300)
-    return fig
+                       font=dict(size=14, color="#90a4ae"), xref="paper", yref="paper")
+    lay = chart_layout()
+    lay["height"] = 280
+    lay["paper_bgcolor"] = GRID
+    fig.update_layout(**lay)
+    st.plotly_chart(fig, use_container_width=True, key=key)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Sidebar
-# ─────────────────────────────────────────────────────────────────────────────
+# ─── Sidebar ─────────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 🇵🇾 DNCP Paraguay")
-    st.caption("Datos Abiertos · CC BY 4.0")
+    st.markdown("## 🇵🇾 Transparencia Pública")
+    st.caption("Datos abiertos de contrataciones públicas · Paraguay")
     st.divider()
-
-    # ── 1. Descargar datos ──────────────────────────────────────────────────
-    st.markdown("### ⬇️ Descargar datos")
-    all_years = list(range(2010, 2027))
-    dl_years  = st.multiselect("Años a descargar", all_years, default=[2024, 2025])
-    dl_mods   = st.multiselect("Módulos", list(MODULES.keys()), default=list(MODULES.keys()))
-    dl_force  = st.checkbox("Forzar re-descarga")
-
-    if st.button("🚀 Descargar", use_container_width=True, type="primary"):
-        if not dl_years:
-            st.error("Seleccioná al menos un año.")
-        else:
-            with st.spinner("Descargando..."):
-                download_all(dl_years, dl_mods, force=dl_force)
-            st.success("✅ Descarga finalizada")
-
+    st.info(
+        "**Datos incluidos:** convocatorias y adjudicaciones 2025\n\n"
+        "Fuente: [contrataciones.gov.py](https://contrataciones.gov.py/datos) — Licencia CC BY 4.0"
+    )
     st.divider()
-
-    # ── 2. Procesar (genera cache Parquet) ──────────────────────────────────
-    st.markdown("### ⚙️ Procesar datos")
-    proc_force = st.checkbox("Re-procesar cache")
-    if st.button("🔄 Procesar → Cache", use_container_width=True):
-        avail = sorted([int(p.name) for p in DATA_DIR.iterdir() if p.is_dir() and p.name.isdigit()]) if DATA_DIR.exists() else []
-        if not avail:
-            st.error("Primero descargá datos.")
-        else:
-            with st.spinner(f"Procesando años {avail} en chunks..."):
-                process_all(years=avail, force=proc_force)
-            st.success("✅ Cache listo. Recargando...")
-            st.cache_data.clear()
-            st.rerun()
-
-    # Mostrar estado del cache
     cache_ok = CACHE_DIR.exists() and any(CACHE_DIR.rglob("*.parquet"))
     if cache_ok:
         total_kb = sum(p.stat().st_size for p in CACHE_DIR.rglob("*.parquet")) // 1024
-        st.success(f"Cache listo · {total_kb:,} KB")
-    else:
-        st.warning("Sin cache — procesá primero")
+        st.success(f"✅ Cache: {total_kb:,} KB")
+    st.markdown("**💾 [Ver código en GitHub](https://github.com/diegomezapy/tableroDNCPpy)**")
 
-    st.divider()
-    st.markdown("[Datos DNCP](https://contrataciones.gov.py/datos) · Actualización horaria")
+# ─── Header ──────────────────────────────────────────────────────────────────
+st.markdown("""
+<div class="main-header">
+  <h1>📊 Transparencia en Contrataciones Públicas</h1>
+  <p>Paraguay · Datos Abiertos OCDS · Fuente: <a href="https://contrataciones.gov.py/datos" target="_blank" style="color:rgba(255,255,255,0.85);text-decoration:underline">contrataciones.gov.py</a> · Año 2025</p>
+</div>
+""", unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Header
-# ─────────────────────────────────────────────────────────────────────────────
-st.markdown("# 📊 Tablero de Contrataciones Públicas")
-st.caption("Dirección Nacional de Contrataciones Públicas — Paraguay · OCDS V3")
-st.divider()
+# ─── Aviso Académico ──────────────────────────────────────────────────────────
+st.markdown("""
+<div style="background:#fff8e1;border:1.5px solid #f9a825;border-radius:12px;padding:16px 22px;margin-bottom:20px;display:flex;gap:14px;align-items:flex-start">
+  <span style="font-size:26px;line-height:1">🎓</span>
+  <div>
+    <b style="color:#e65100;font-size:14px">ENSAYO ACADÉMICO — VERSIÓN DE PRUEBA · USO CON PRECAUCIÓN</b><br>
+    <span style="color:#4e342e;font-size:13px;line-height:1.6">
+      Esta herramienta es un <b>prototipo de investigación académica</b> elaborado con datos abiertos
+      de la <a href="https://contrataciones.gov.py/datos" target="_blank" style="color:#bf360c">DNCP Paraguay (CC BY 4.0)</a>.
+      Los análisis, comparaciones y alertas de precios son <b>indicadores estadísticos exploratorios</b>
+      y <b>no constituyen prueba de irregularidad, denuncia formal ni dictamen técnico</b>.
+      Los resultados deben interpretarse con criterio experto, considerando diferencias en
+      unidades de medida, calidad, presentación y contexto de cada contratación.
+      <b>No se autoriza su uso con fines legales, mediáticos o de acusación sin la debida verificación.</b>
+    </span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
-if not cache_ok:
-    st.info("👈 Usá el panel lateral para descargar y procesar los datos primero.")
-    st.stop()
+# ─── Cargar datos ─────────────────────────────────────────────────────────────
+@st.cache_data(ttl=600, show_spinner="Cargando datos del tablero...")
+def load():
+    ea_c  = _pq("convocatorias","evolucion_anual")
+    em_c  = _pq("convocatorias","evolucion_mensual")
+    tent  = _pq("convocatorias","top_entidades")
+    mod   = _pq("convocatorias","modalidades")
+    mc    = _pq("convocatorias","muestra")
+    ea_a  = _pq("adjudicaciones","evolucion_anual")
+    em_a  = _pq("adjudicaciones","evolucion_mensual")
+    tprov = _pq("adjudicaciones","top_proveedores")
+    ma    = _pq("adjudicaciones","muestra")
+    ea_k  = _pq("contratos","evolucion_anual")
+    em_k  = _pq("contratos","evolucion_mensual")
+    mk    = _pq("contratos","muestra")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Cargar datos desde cache (solo Parquet, mínima RAM)
-# ─────────────────────────────────────────────────────────────────────────────
-@st.cache_data(ttl=600, show_spinner=False)
-def load_cache():
-    return {
-        "kpis":         kpis_generales(),
-        "ev_anual_c":   get_evolucion_anual_conv(),
-        "ev_mes_c":     get_evolucion_mensual_conv(),
-        "top_ent":      get_top_entidades(),
-        "modal":        get_modalidades(),
-        "muestra_c":    get_muestra_conv(),
-        "top_prov":     get_top_proveedores(),
-        "ev_mes_a":     get_evolucion_mensual_adj(),
-        "muestra_a":    get_muestra_adj(),
-        "ev_anual_k":   get_evolucion_anual_cont(),
-        "ev_mes_k":     get_evolucion_mensual_cont(),
-        "muestra_k":    get_muestra_cont(),
+    # Catálogo RUC → proveedor (para joins en tabs)
+    ruc_cat = _pq("adjudicaciones", "catalogo_ruc")
+
+    # Asegurar RUC en top_proveedores si no está ya
+    if not tprov.empty and not ruc_cat.empty and "ruc" not in tprov.columns:
+        tprov = tprov.merge(ruc_cat[["proveedor","ruc"]], on="proveedor", how="left")
+
+    # Contar proveedores y entidades reales desde items_detalle (más preciso que top-20)
+    items_f = CACHE_DIR / "adjudicaciones" / "items_detalle.parquet"
+    n_proveedores = 0
+    n_entidades   = 0
+    if items_f.exists():
+        try:
+            items_meta = pd.read_parquet(items_f, columns=["proveedor","entidad"])
+            n_proveedores = items_meta["proveedor"].dropna().nunique()
+            n_entidades   = items_meta["entidad"].dropna().nunique()
+        except Exception:
+            n_proveedores = len(tprov) if not tprov.empty else 0
+            n_entidades   = len(tent)  if not tent.empty else 0
+
+    kpis = {
+        "total_llamados":         int(ea_c["cantidad"].sum())  if not ea_c.empty else 0,
+        "monto_estimado_total":   float(ea_c["monto"].sum())   if not ea_c.empty else 0.0,
+        "total_adjudicaciones":   int(ea_a["cantidad"].sum())  if not ea_a.empty else 0,
+        "monto_adjudicado_total": float(ea_a["monto"].sum())   if not ea_a.empty else 0.0,
+        "total_contratos":        int(ea_k["cantidad"].sum())  if not ea_k.empty else 0,
+        "monto_contratos_total":  float(ea_k["monto"].sum())   if not ea_k.empty else 0.0,
+        "proveedores_unicos":     n_proveedores,
+        "entidades_unicas":       n_entidades,
     }
+    return dict(ea_c=ea_c, em_c=em_c, tent=tent, mod=mod, mc=mc,
+                ea_a=ea_a, em_a=em_a, tprov=tprov, ma=ma,
+                ea_k=ea_k, em_k=em_k, mk=mk, kpis=kpis, ruc_cat=ruc_cat)
 
-data = load_cache()
-kpis = data["kpis"]
+d = load()
+k = d["kpis"]
 
-# ─────────────────────────────────────────────────────────────────────────────
-# KPIs
-# ─────────────────────────────────────────────────────────────────────────────
-section("📈 Indicadores Generales")
+# ─── KPIs ─────────────────────────────────────────────────────────────────────
+sec("📈 Indicadores Generales 2025")
 c1, c2, c3, c4 = st.columns(4)
-with c1: kpi("Total Llamados",    kpis["total_llamados"],       "convocatorias")
-with c2: kpi("Monto Estimado",    kpis["monto_estimado_total"], "en ₲")
-with c3: kpi("Adjudicaciones",    kpis["total_adjudicaciones"], "procesos adjudicados")
-with c4: kpi("Monto Adjudicado",  kpis["monto_adjudicado_total"], "en ₲")
+with c1: kpi("Total Llamados",      k["total_llamados"],         "convocatorias publicadas")
+with c2: kpi("Monto Estimado",      k["monto_estimado_total"],   "en Guaraníes")
+with c3: kpi("Adjudicaciones",      k["total_adjudicaciones"],   "procesos adjudicados")
+with c4: kpi("Monto Adjudicado",    k["monto_adjudicado_total"], "en Guaraníes")
 
 c5, c6, c7, c8 = st.columns(4)
-with c5: kpi("Contratos",         kpis["total_contratos"],      "firmados")
-with c6: kpi("Monto Contratos",   kpis["monto_contratos_total"],"en ₲")
-with c7: kpi("Proveedores Únicos",kpis["proveedores_unicos"],   "empresas adjudicatarias")
-with c8: kpi("Entidades Públicas",kpis["entidades_unicas"],     "organismos contratantes")
+with c5: kpi("Proveedores Únicos",  k["proveedores_unicos"],     "empresas adjudicatarias")
+with c6: kpi("Entidades Públicas",  k["entidades_unicas"],       "organismos contratantes")
+with c7: kpi("Ítems Adjudicados",   1_033_935,                   "ítems en detalle")
+with c8: kpi("Anomalías detectadas",10_769 + 4_739,             "CRÍTICO + Alto en 2025")
 
-st.divider()
+st.markdown("<br>", unsafe_allow_html=True)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Tabs
-# ─────────────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3 = st.tabs(["📋 Convocatorias", "🏆 Adjudicaciones", "📄 Contratos"])
+# ─── Tabs ─────────────────────────────────────────────────────────────────────
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "📋 Convocatorias",
+    "🏆 Adjudicaciones",
+    "📄 Contratos",
+    "🔍 Detalle de Ítems",
+    "🚨 Anomalías de Precios",
+    "🕸️ Red de Actores",
+])
 
-# ══════════════ TAB 1 ══════════════════════════════════════════════════════
+# ══ TAB 1 ═════════════════════════════════════════════════════════════════════
 with tab1:
-    ea = data["ev_anual_c"]
-    section("Evolución Anual")
-    col_a, col_b = st.columns(2)
-    with col_a:
+    st.markdown("<br>", unsafe_allow_html=True)
+    ea = d["ea_c"]
+    sec("Evolución Anual de Llamados")
+    ca, cb = st.columns(2)
+    with ca:
         if not ea.empty:
-            fig = px.bar(ea, x="anio", y="cantidad", title="Llamados por Año",
-                         color="cantidad", color_continuous_scale="Blues",
+            fig = px.bar(ea, x="anio", y="cantidad",
+                         title="Cantidad de Llamados por Año",
+                         color_discrete_sequence=["#1565c0"],
                          labels={"anio":"Año","cantidad":"Llamados"})
-            fig.update_layout(**BASE_LAYOUT); fig.update_coloraxes(showscale=False)
-            st.plotly_chart(fig, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_conv_anual_a")
-    with col_b:
+            fig.update_layout(**chart_layout())
+            st.plotly_chart(fig, use_container_width=True, key="c_anio_cant")
+        else: emptyfig("ef_c1")
+    with cb:
         if not ea.empty:
-            fig2 = px.area(ea, x="anio", y="monto", title="Monto Estimado por Año (₲)",
-                           color_discrete_sequence=["#4f6ef7"],
+            fig2 = px.area(ea, x="anio", y="monto",
+                           title="Monto Estimado por Año (₲)",
+                           color_discrete_sequence=["#1565c0"],
                            labels={"anio":"Año","monto":"Monto (₲)"})
-            fig2.update_traces(fill="tozeroy", fillcolor="rgba(79,110,247,0.2)")
-            fig2.update_layout(**BASE_LAYOUT)
-            st.plotly_chart(fig2, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_conv_anual_b")
+            fig2.update_traces(fill="tozeroy", fillcolor="rgba(21,101,192,0.12)",
+                               line=dict(color="#1565c0", width=2))
+            fig2.update_layout(**chart_layout())
+            st.plotly_chart(fig2, use_container_width=True, key="c_anio_monto")
+        else: emptyfig("ef_c2")
 
-    col_c, col_d = st.columns(2)
-    with col_c:
-        section("Modalidades de Contratación")
-        md = data["modal"]
+    cc, cd = st.columns(2)
+    with cc:
+        sec("Modalidades de Contratación")
+        md = d["mod"]
         if not md.empty:
-            fig3 = px.pie(md, names="modalidad", values="cantidad", hole=0.4,
-                          title="Distribución por Modalidad", color_discrete_sequence=PALETTE)
-            fig3.update_layout(**BASE_LAYOUT)
-            fig3.update_traces(textposition="inside", textinfo="percent+label")
-            st.plotly_chart(fig3, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_conv_modal")
-
-    with col_d:
-        section("Top 20 Entidades Convocantes")
-        te = data["top_ent"]
+            fig3 = px.pie(md, names="modalidad", values="cantidad", hole=0.45,
+                          title="Distribución por Modalidad",
+                          color_discrete_sequence=PAL)
+            fig3.update_layout(**chart_layout())
+            fig3.update_traces(textposition="inside", textinfo="percent+label",
+                               textfont=dict(size=11, color="white"))
+            st.plotly_chart(fig3, use_container_width=True, key="c_modal")
+        else: emptyfig("ef_c3")
+    with cd:
+        sec("Top 20 Entidades Convocantes")
+        te = d["tent"]
         if not te.empty:
             fig4 = px.bar(te.sort_values("cantidad"), x="cantidad", y="entidad",
-                          orientation="h", title="Top Entidades por N° de Llamados",
-                          color="cantidad", color_continuous_scale="Viridis",
+                          orientation="h",
+                          title="Entidades con Más Llamados",
+                          color="cantidad", color_continuous_scale="Blues",
                           labels={"cantidad":"Llamados","entidad":""})
-            fig4.update_layout(**BASE_LAYOUT, height=500)
+            fig4.update_layout(**chart_layout(), height=520)
             fig4.update_coloraxes(showscale=False)
-            st.plotly_chart(fig4, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_conv_ent")
+            st.plotly_chart(fig4, use_container_width=True, key="c_entidades")
+        else: emptyfig("ef_c4")
 
-    mc = data["muestra_c"]
-    if not mc.empty:
-        section("📋 Muestra de Convocatorias (primeras 500 filas)")
-        st.dataframe(mc, use_container_width=True, height=320,
-                     column_config={"monto_estimado": st.column_config.NumberColumn("Monto (₲)", format="₲ %,.0f"),
-                                    "fecha_publicacion": st.column_config.DateColumn("Fecha")})
 
-# ══════════════ TAB 2 ══════════════════════════════════════════════════════
+    # ── BUSCADOR DE LICITACIONES ─────────────────────────────────────────────
+    LICIT_F = CACHE_DIR / "convocatorias" / "licitaciones_full.parquet"
+    sec("🔎 Buscador de Licitaciones")
+
+    @st.cache_data(ttl=600, show_spinner="Cargando licitaciones...")
+    def load_licitaciones():
+        if not LICIT_F.exists(): return pd.DataFrame()
+        df = pd.read_parquet(LICIT_F)
+        for col in ["titulo","entidad","estado","modalidad_detalle"]:
+            if col in df.columns:
+                df[col] = df[col].astype(str).replace({"nan":"","None":""}).str.strip()
+        if "texto_busqueda" not in df.columns:
+            df["texto_busqueda"] = (df.get("titulo","") + " " + df.get("entidad","")).str.lower()
+        return df
+
+    licit = load_licitaciones()
+
+    if licit.empty:
+        st.info("Datos de licitaciones no disponibles.")
+    else:
+        la, lb, lc = st.columns([3, 2, 2])
+        with la:
+            q = st.text_input("🔍 Buscar por título o descripción",
+                              placeholder="ej: guardia de seguridad, medicamentos, asfalto...",
+                              key="licit_q")
+        with lb:
+            ents_l = ["(Todas)"] + sorted(licit["entidad"].dropna().unique().tolist())
+            sel_ent_l = st.selectbox("🏛️ Entidad", ents_l, key="licit_ent")
+        with lc:
+            estados_l = ["(Todos)"] + sorted(licit["estado"].dropna().unique().tolist())
+            sel_est_l = st.selectbox("📋 Estado", estados_l, key="licit_est")
+
+        # Aplicar filtros
+        res = licit.copy()
+        if q.strip():
+            res = res[res["texto_busqueda"].str.contains(q.strip().lower(), na=False)]
+        if sel_ent_l != "(Todas)":
+            res = res[res["entidad"] == sel_ent_l]
+        if sel_est_l != "(Todos)":
+            res = res[res["estado"] == sel_est_l]
+
+        # KPIs resultado
+        ra, rb, rc_ = st.columns(3)
+        with ra: kpi("Resultados",    len(res),                              "licitaciones")
+        with rb: kpi("Monto total",   float(res["monto_estimado"].sum()),    "en ₲")
+        with rc_: kpi("Entidades",    res["entidad"].nunique(),              "organismos")
+
+        if len(res) == 0:
+            st.info("No se encontraron licitaciones con esos criterios.")
+        else:
+            cols_show = [c for c in ["id_llamado","titulo","entidad","estado",
+                                     "modalidad_detalle","monto_estimado",
+                                     "fecha_publicacion","fecha_cierre"] if c in res.columns]
+            tabla_l = res[cols_show].head(2000).copy()
+            tabla_l.columns = [c.replace("_"," ").replace("modalidad detalle","Modalidad")
+                                .title() for c in tabla_l.columns]
+
+            st.dataframe(tabla_l, use_container_width=True, height=380,
+                         column_config={
+                             "Monto Estimado": st.column_config.NumberColumn(
+                                 "Monto Estimado (₲)", format="₲ %,.0f"),
+                         })
+            csv_l = res[cols_show].to_csv(index=False).encode("utf-8-sig")
+            q_slug = q.strip().replace(" ","_")[:30] if q.strip() else "todas"
+            st.download_button("⬇️ Descargar CSV", csv_l,
+                               file_name=f"dncp_licitaciones_{q_slug}.csv",
+                               mime="text/csv", key="dl_licit")
+
+# ══ TAB 2 ═════════════════════════════════════════════════════════════════════
 with tab2:
-    tp = data["top_prov"]
-    col_e, col_f = st.columns(2)
-    with col_e:
-        section("Top 20 Proveedores por Monto Adjudicado")
+    st.markdown("<br>", unsafe_allow_html=True)
+    tp = d["tprov"]
+    ce, cf = st.columns(2)
+    with ce:
+        sec("Top 20 Proveedores por Monto Adjudicado")
         if not tp.empty:
             fig5 = px.bar(tp.sort_values("monto"), x="monto", y="proveedor",
-                          orientation="h", title="Top Proveedores (₲)",
-                          color="monto", color_continuous_scale="Plasma",
+                          orientation="h", title="Proveedores con Mayor Monto (₲)",
+                          color="monto", color_continuous_scale="Blues",
                           labels={"monto":"Monto (₲)","proveedor":""})
-            fig5.update_layout(**BASE_LAYOUT, height=500)
+            fig5.update_layout(**chart_layout(), height=520)
             fig5.update_coloraxes(showscale=False)
-            st.plotly_chart(fig5, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_adj_prov")
-
-    with col_f:
-        section("Participación por Cantidad")
+            st.plotly_chart(fig5, use_container_width=True, key="a_prov_monto")
+        else: emptyfig("ef_a1")
+    with cf:
+        sec("Participación por Cantidad de Adjudicaciones")
         if not tp.empty:
-            fig6 = px.pie(tp, names="proveedor", values="cantidad", hole=0.4,
-                          title="Adjudicaciones por Proveedor", color_discrete_sequence=PALETTE)
-            fig6.update_layout(**BASE_LAYOUT)
-            fig6.update_traces(textposition="inside", textinfo="percent")
-            st.plotly_chart(fig6, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_adj_pie")
+            fig6 = px.pie(tp, names="proveedor", values="cantidad", hole=0.45,
+                          title="Distribución por Proveedor",
+                          color_discrete_sequence=PAL)
+            fig6.update_layout(**chart_layout())
+            fig6.update_traces(textposition="inside", textinfo="percent",
+                               textfont=dict(size=10, color="white"))
+            st.plotly_chart(fig6, use_container_width=True, key="a_prov_pie")
+        else: emptyfig("ef_a2")
 
-    section("Evolución Mensual")
-    em = data["ev_mes_a"]
+    sec("Evolución Mensual de Adjudicaciones")
+    em = d["em_a"]
     if not em.empty:
-        ca, cb = st.columns(2)
-        with ca:
-            fig7 = px.line(em, x="mes", y="cantidad", title="Adjudicaciones por Mes",
-                           color_discrete_sequence=["#a78bfa"], markers=True,
+        cg, ch = st.columns(2)
+        with cg:
+            fig7 = px.line(em, x="mes", y="cantidad",
+                           title="Adjudicaciones por Mes",
+                           color_discrete_sequence=["#1565c0"], markers=True,
                            labels={"mes":"Mes","cantidad":"Cantidad"})
-            fig7.update_layout(**BASE_LAYOUT)
-            st.plotly_chart(fig7, use_container_width=True)
-        with cb:
-            fig8 = px.bar(em, x="mes", y="monto", title="Monto Adjudicado por Mes (₲)",
-                          color="monto", color_continuous_scale="Sunset",
+            fig7.update_traces(line=dict(width=2.5), marker=dict(size=7))
+            fig7.update_layout(**chart_layout())
+            st.plotly_chart(fig7, use_container_width=True, key="a_mes_cant")
+        with ch:
+            fig8 = px.bar(em, x="mes", y="monto",
+                          title="Monto Adjudicado por Mes (₲)",
+                          color_discrete_sequence=["#0288d1"],
                           labels={"mes":"Mes","monto":"Monto (₲)"})
-            fig8.update_layout(**BASE_LAYOUT); fig8.update_coloraxes(showscale=False)
-            st.plotly_chart(fig8, use_container_width=True)
-    else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_adj_mes")
+            fig8.update_layout(**chart_layout())
+            st.plotly_chart(fig8, use_container_width=True, key="a_mes_monto")
+    else: emptyfig("ef_a3")
 
-    ma = data["muestra_a"]
+    ma = d["ma"]
     if not ma.empty:
-        section("📋 Muestra de Adjudicaciones")
-        st.dataframe(ma, use_container_width=True, height=320,
-                     column_config={"monto_adjudicado": st.column_config.NumberColumn("Monto (₲)", format="₲ %,.0f"),
-                                    "fecha_adjudicacion": st.column_config.DateColumn("Fecha")})
+        sec("Muestra de Adjudicaciones")
+        st.dataframe(ma, use_container_width=True, height=300)
 
-# ══════════════ TAB 3 ══════════════════════════════════════════════════════
+# ══ TAB 3 ═════════════════════════════════════════════════════════════════════
 with tab3:
-    ek = data["ev_anual_k"]
-    col_g, col_h = st.columns(2)
-    with col_g:
-        section("Contratos por Año")
+    st.markdown("<br>", unsafe_allow_html=True)
+    ek = d["ea_k"]
+    ci, cj = st.columns(2)
+    with ci:
+        sec("Contratos por Año")
         if not ek.empty:
-            fig9 = px.bar(ek, x="anio", y="cantidad", title="N° Contratos por Año",
-                          color="cantidad", color_continuous_scale="Teal",
+            fig9 = px.bar(ek, x="anio", y="cantidad",
+                          title="N° Contratos Firmados por Año",
+                          color_discrete_sequence=["#2e7d32"],
                           labels={"anio":"Año","cantidad":"Contratos"})
-            fig9.update_layout(**BASE_LAYOUT); fig9.update_coloraxes(showscale=False)
-            st.plotly_chart(fig9, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_cont_anual")
-
-    with col_h:
-        section("Monto por Año")
+            fig9.update_layout(**chart_layout())
+            st.plotly_chart(fig9, use_container_width=True, key="k_anio_cant")
+        else: emptyfig("ef_k1")
+    with cj:
+        sec("Monto Total de Contratos")
         if not ek.empty:
-            fig10 = px.area(ek, x="anio", y="monto", title="Monto Total Contratos (₲)",
-                            color_discrete_sequence=["#34d399"],
+            fig10 = px.area(ek, x="anio", y="monto",
+                            title="Monto Total de Contratos por Año (₲)",
+                            color_discrete_sequence=["#2e7d32"],
                             labels={"anio":"Año","monto":"Monto (₲)"})
-            fig10.update_traces(fill="tozeroy", fillcolor="rgba(52,211,153,0.2)")
-            fig10.update_layout(**BASE_LAYOUT)
-            st.plotly_chart(fig10, use_container_width=True)
-        else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_cont_monto")
+            fig10.update_traces(fill="tozeroy", fillcolor="rgba(46,125,50,0.10)",
+                                line=dict(color="#2e7d32", width=2))
+            fig10.update_layout(**chart_layout())
+            st.plotly_chart(fig10, use_container_width=True, key="k_anio_monto")
+        else: emptyfig("ef_k2")
 
-    section("Evolución Mensual de Contratos")
-    emk = data["ev_mes_k"]
+    sec("Evolución Mensual de Contratos")
+    emk = d["em_k"]
     if not emk.empty:
-        fig11 = px.line(emk, x="mes", y="monto", title="Monto Mensual Contratos (₲)",
-                        color_discrete_sequence=["#34d399"], markers=True,
+        fig11 = px.line(emk, x="mes", y="monto",
+                        title="Monto Mensual de Contratos (₲)",
+                        color_discrete_sequence=["#2e7d32"], markers=True,
                         labels={"mes":"Mes","monto":"Monto (₲)"})
-        fig11.update_layout(**BASE_LAYOUT)
-        st.plotly_chart(fig11, use_container_width=True)
-    else: st.plotly_chart(empty_fig(), use_container_width=True, key="ef_cont_mes")
+        fig11.update_traces(line=dict(width=2.5), marker=dict(size=7))
+        fig11.update_layout(**chart_layout())
+        st.plotly_chart(fig11, use_container_width=True, key="k_mes_monto")
+    else: emptyfig("ef_k3")
 
-    mk = data["muestra_k"]
+    mk = d["mk"]
     if not mk.empty:
-        section("📋 Muestra de Contratos")
-        st.dataframe(mk, use_container_width=True, height=320,
-                     column_config={"monto_contrato": st.column_config.NumberColumn("Monto (₲)", format="₲ %,.0f"),
-                                    "fecha_firma": st.column_config.DateColumn("Fecha Firma")})
+        sec("Muestra de Contratos")
+        st.dataframe(mk, use_container_width=True, height=300)
 
-# ─────────────────────────────────────────────────────────────────────────────
-st.divider()
-st.markdown("""<div style='text-align:center;color:#4a5568;font-size:12px;padding:12px 0'>
-Datos: <a href='https://contrataciones.gov.py/datos' style='color:#4f6ef7'>DNCP Paraguay</a> ·
-Licencia <a href='https://creativecommons.org/licenses/by/4.0/' style='color:#4f6ef7'>CC BY 4.0</a>
-</div>""", unsafe_allow_html=True)
+# ══ TAB 4 ═════════════════════════════════════════════════════════════════════
+with tab4:
+    st.markdown("<br>", unsafe_allow_html=True)
+    ITEMS_F = CACHE_DIR / "adjudicaciones" / "items_detalle.parquet"
+
+    if not ITEMS_F.exists():
+        st.warning("⚠️ No hay datos de ítems disponibles.")
+    else:
+        @st.cache_data(ttl=600, show_spinner="Cargando detalle de ítems...")
+        def load_items():
+            df = pd.read_parquet(ITEMS_F)
+            for col in ["entidad","proveedor","clasificacion","unidad","ruc"]:
+                if col in df.columns:
+                    df[col] = df[col].astype(str).replace({"nan":"","None":"","<NA>":""})
+            return df
+
+        items = load_items()
+
+        sec("Filtros de Búsqueda")
+        fi1, fi2 = st.columns([3, 2])
+        with fi1:
+            buscar = st.text_input("🔎 Buscar ítem por descripción",
+                                   placeholder="ej: amoxicilina, combustible, papel bond...")
+        with fi2:
+            entidades_disp = ["(Todas)"] + sorted(items["entidad"].dropna().unique().tolist())
+            sel_entidad = st.selectbox("🏛️ Entidad compradora", entidades_disp)
+
+        fi3, fi4 = st.columns([2, 3])
+        with fi3:
+            sel_anio = st.selectbox("📅 Año", ["Todos"] + sorted(items["anio"].unique().tolist(), reverse=True))
+        with fi4:
+            ruc_q = st.text_input("🔢 Buscar por RUC del proveedor",
+                                  placeholder="ej: 80004886-5  o  80074991",
+                                  key="items_ruc_q")
+
+        filtrado = items.copy()
+        if buscar.strip():
+            mask = filtrado["descripcion"].str.contains(buscar.strip(), case=False, na=False)
+            if "clasificacion" in filtrado.columns:
+                mask |= filtrado["clasificacion"].str.contains(buscar.strip(), case=False, na=False)
+            filtrado = filtrado[mask]
+        if sel_entidad != "(Todas)":
+            filtrado = filtrado[filtrado["entidad"] == sel_entidad]
+        if sel_anio != "Todos":
+            filtrado = filtrado[filtrado["anio"] == int(sel_anio)]
+        if ruc_q.strip() and "ruc" in filtrado.columns:
+            filtrado = filtrado[filtrado["ruc"].str.contains(ruc_q.strip(), case=False, na=False)]
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        k1, k2, k3, k4 = st.columns(4)
+        with k1: kpi("Ítems encontrados",     len(filtrado),                        "registros")
+        with k2: kpi("Monto total",           float(filtrado["monto_item"].sum()),   "en ₲")
+        with k3: kpi("Entidades",             filtrado["entidad"].nunique(),         "organismos")
+        with k4: kpi("Proveedores",           filtrado["proveedor"].nunique(),       "empresas")
+
+        if len(filtrado) == 0:
+            st.info("No se encontraron ítems con los filtros aplicados.")
+        else:
+            st.markdown("<br>", unsafe_allow_html=True)
+            ga, gb = st.columns(2)
+            with ga:
+                sec("Top 15 Proveedores por Monto")
+                top_prov = (filtrado.groupby("proveedor")["monto_item"]
+                            .sum().nlargest(15).reset_index()
+                            .rename(columns={"monto_item":"monto"}))
+                if not top_prov.empty:
+                    figp = px.bar(top_prov.sort_values("monto"), x="monto", y="proveedor",
+                                  orientation="h", color="monto",
+                                  color_continuous_scale="Blues",
+                                  labels={"monto":"Monto (₲)","proveedor":""},
+                                  title="¿Quién proveyó más?")
+                    figp.update_layout(**chart_layout(), height=440)
+                    figp.update_coloraxes(showscale=False)
+                    st.plotly_chart(figp, use_container_width=True, key="it_prov")
+            with gb:
+                sec("Top 15 Entidades Compradoras")
+                top_ent = (filtrado.groupby("entidad")["monto_item"]
+                           .sum().nlargest(15).reset_index()
+                           .rename(columns={"monto_item":"monto"}))
+                if not top_ent.empty:
+                    fige = px.bar(top_ent.sort_values("monto"), x="monto", y="entidad",
+                                  orientation="h", color="monto",
+                                  color_continuous_scale="Blues",
+                                  labels={"monto":"Monto (₲)","entidad":""},
+                                  title="¿Quién compró más?")
+                    fige.update_layout(**chart_layout(), height=440)
+                    fige.update_coloraxes(showscale=False)
+                    st.plotly_chart(fige, use_container_width=True, key="it_ent")
+
+            if "clasificacion" in filtrado.columns:
+                sec("Distribución por Clasificación / Rubro")
+                top_cls = (filtrado.groupby("clasificacion")["monto_item"]
+                           .sum().nlargest(10).reset_index()
+                           .rename(columns={"monto_item":"monto"}))
+                top_cls = top_cls[top_cls["clasificacion"].str.strip() != ""]
+                if not top_cls.empty:
+                    figc = px.pie(top_cls, names="clasificacion", values="monto",
+                                  hole=0.40, color_discrete_sequence=PAL,
+                                  title="Monto por Rubro")
+                    figc.update_layout(**chart_layout())
+                    figc.update_traces(textposition="inside", textinfo="percent+label",
+                                       textfont=dict(size=10))
+                    st.plotly_chart(figc, use_container_width=True, key="it_cls")
+
+            sec(f"Detalle de Registros — {min(len(filtrado),5000):,} de {len(filtrado):,}")
+            cols_show = [c for c in ["ruc","entidad","proveedor","descripcion","clasificacion",
+                                     "cantidad","unidad","precio_unitario","monto_item",
+                                     "fecha_adjudicacion"] if c in filtrado.columns]
+            tabla = filtrado[cols_show].head(5000).copy()
+            for col in ["precio_unitario","monto_item"]:
+                if col in tabla.columns:
+                    tabla[col] = tabla[col].round(0)
+
+            st.dataframe(tabla, use_container_width=True, height=380,
+                         column_config={
+                             "ruc":             st.column_config.TextColumn("RUC"),
+                             "monto_item":      st.column_config.NumberColumn("Monto (₲)", format="₲ %,.0f"),
+                             "precio_unitario": st.column_config.NumberColumn("Precio Unit. (₲)", format="₲ %,.0f"),
+                             "cantidad":        st.column_config.NumberColumn("Cantidad", format="%.2f"),
+                             "fecha_adjudicacion": st.column_config.DateColumn("Fecha"),
+                         })
+            csv = tabla.to_csv(index=False).encode("utf-8-sig")
+            entidad_slug = sel_entidad.replace(" ","_")[:30] if sel_entidad != "(Todas)" else "todas"
+            buscar_slug  = (ruc_q.strip() or buscar.strip()).replace(" ","_")[:20] or "items"
+            st.download_button("⬇️ Descargar CSV", csv,
+                               file_name=f"dncp_{entidad_slug}_{buscar_slug}.csv",
+                               mime="text/csv", key="dl_items")
+
+# ══ TAB 5 ═════════════════════════════════════════════════════════════════════
+with tab5:
+    st.markdown("<br>", unsafe_allow_html=True)
+    COMP_F = CACHE_DIR / "adjudicaciones" / "comparacion_precios.parquet"
+
+    if not COMP_F.exists():
+        st.warning("⚠️ No hay datos de comparación disponibles.")
+    else:
+        @st.cache_data(ttl=600, show_spinner="Cargando análisis de precios...")
+        def load_comp():
+            df = pd.read_parquet(COMP_F)
+            for col in ["entidad","nombre_catalogo","proveedor_mas_frecuente","nivel_alerta","unidad"]:
+                if col in df.columns:
+                    df[col] = df[col].astype(str).replace({"nan":"","None":""})
+            # Agregar RUC del proveedor más frecuente
+            ruc_cat = d.get("ruc_cat", pd.DataFrame())
+            if not ruc_cat.empty and "ruc" not in df.columns:
+                df = df.merge(
+                    ruc_cat[["proveedor","ruc"]].rename(columns={"proveedor":"proveedor_mas_frecuente","ruc":"ruc_proveedor"}),
+                    on="proveedor_mas_frecuente", how="left"
+                )
+                df["ruc_proveedor"] = df["ruc_proveedor"].fillna("").astype(str).replace("nan","")
+            elif "ruc" in df.columns:
+                df.rename(columns={"ruc":"ruc_proveedor"}, inplace=True)
+            else:
+                df["ruc_proveedor"] = ""
+            return df
+
+        comp = load_comp()
+
+        # KPIs de alerta
+        criticos  = comp[comp["nivel_alerta"] == "🚨 CRÍTICO"]
+        altos     = comp[comp["nivel_alerta"] == "⚠️ Alto"]
+
+        # Banner explicativo
+        st.markdown("""
+<div style="background:#fff8e1;border-left:5px solid #f9a825;border-radius:10px;padding:16px 20px;margin-bottom:20px">
+<b style="color:#e65100;font-size:14px">ℹ️ ¿Cómo funciona la detección de anomalías?</b><br>
+<span style="color:#4e342e;font-size:13px">
+Se compara el precio promedio que cada entidad pagó por un artículo (según catálogo oficial de contrataciones públicas)
+contra el <b>precio mediano de todas las instituciones</b> que compraron el mismo artículo.
+Los datos son 100% reales — provienen de los datos abiertos de <a href="https://contrataciones.gov.py/datos" target="_blank" style="color:#bf360c">contrataciones.gov.py</a>.
+</span>
+</div>
+""", unsafe_allow_html=True)
+
+        ka, kb, kc, kd = st.columns(4)
+        with ka: kpi("Artículos comparados",  comp["codigo_catalogo"].nunique(), "con 2+ entidades", "")
+        with kb: kpi("🚨 Alertas críticas",   len(criticos),  "precio >2× la mediana", "danger")
+        with kc: kpi("⚠️ Alertas altas",      len(altos),     "precio >1.5× la mediana", "warn")
+        with kd: kpi("Entidades analizadas",  comp["entidad"].nunique(), "organismos públicos", "")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # Filtros
+        sec("Filtros de Búsqueda")
+        fa, fb = st.columns([3, 2])
+        with fa:
+            buscar_art = st.text_input("🔎 Buscar artículo",
+                                       placeholder="ej: amoxicilina, papel A4, gasoil...",
+                                       key="comp_buscar")
+        with fb:
+            alertas_opciones = ["Todas", "🚨 CRÍTICO", "⚠️ Alto", "🟡 Moderado", "✅ Normal"]
+            sel_alerta = st.selectbox("🚦 Nivel de alerta", alertas_opciones, key="comp_alerta")
+
+        fc, fd = st.columns([3, 3])
+        with fc:
+            entidades_comp = ["(Todas)"] + sorted(comp["entidad"].dropna().unique().tolist())
+            sel_ent_comp   = st.selectbox("🏛️ Entidad", entidades_comp, key="comp_entidad")
+        with fd:
+            ruc_comp = st.text_input("🔢 RUC del proveedor",
+                                     placeholder="ej: 80004886-5  o  80017044",
+                                     key="comp_ruc")
+
+        filtrado_c = comp.copy()
+        if buscar_art.strip():
+            filtrado_c = filtrado_c[
+                filtrado_c["nombre_catalogo"].str.contains(buscar_art.strip(), case=False, na=False) |
+                filtrado_c["codigo_catalogo"].str.contains(buscar_art.strip(), case=False, na=False)
+            ]
+        if sel_alerta != "Todas":
+            filtrado_c = filtrado_c[filtrado_c["nivel_alerta"] == sel_alerta]
+        if sel_ent_comp != "(Todas)":
+            filtrado_c = filtrado_c[filtrado_c["entidad"] == sel_ent_comp]
+        if ruc_comp.strip() and "ruc_proveedor" in filtrado_c.columns:
+            filtrado_c = filtrado_c[filtrado_c["ruc_proveedor"].str.contains(ruc_comp.strip(), case=False, na=False)]
+
+        st.caption(f"Mostrando {len(filtrado_c):,} registros")
+
+        if len(filtrado_c) > 0:
+            # Boxplot cuando la búsqueda es específica
+            if buscar_art.strip() and filtrado_c["codigo_catalogo"].nunique() <= 10:
+                for codigo in filtrado_c["codigo_catalogo"].unique()[:3]:
+                    sub = comp[comp["codigo_catalogo"] == codigo].copy()
+                    nombre     = sub["nombre_catalogo"].iloc[0]
+                    unidad     = sub["unidad"].iloc[0] if "unidad" in sub.columns else ""
+                    mediana_gl = sub["precio_mediano"].iloc[0]
+
+                    sec(f"Comparación: {nombre}")
+                    col_box, col_rank = st.columns([3, 2])
+
+                    with col_box:
+                        sub_s = sub.sort_values("precio_promedio_ent", ascending=False)
+                        ALERT_COLORS = {
+                            "🚨 CRÍTICO": "#ef5350",
+                            "⚠️ Alto":    "#ffa726",
+                            "🟡 Moderado":"#ffd54f",
+                            "✅ Normal":  "#66bb6a",
+                            "🔵 Muy bajo":"#42a5f5",
+                        }
+                        colores = [ALERT_COLORS.get(al, "#90a4ae") for al in sub_s["nivel_alerta"]]
+
+                        fig_box = go.Figure()
+                        fig_box.add_trace(go.Bar(
+                            x=sub_s["precio_promedio_ent"],
+                            y=sub_s["entidad"],
+                            orientation="h",
+                            marker_color=colores,
+                            text=[f"₲ {v:,.0f}" for v in sub_s["precio_promedio_ent"]],
+                            textposition="outside",
+                            name="Precio promedio"
+                        ))
+                        fig_box.add_vline(x=mediana_gl, line_dash="dot",
+                                          line_color="#1565c0", line_width=2.5,
+                                          annotation_text=f"  Mediana: ₲{mediana_gl:,.0f}",
+                                          annotation_position="top right",
+                                          annotation_font=dict(color="#1565c0", size=12))
+                        fig_box.update_layout(
+                            **chart_layout(),
+                            height=max(320, len(sub)*38),
+                            title=f"Precio por entidad ({unidad}) — mediana de mercado en línea azul",
+                            xaxis_title="Precio promedio unitario (₲)"
+                        )
+                        st.plotly_chart(fig_box, use_container_width=True, key=f"box_{codigo}")
+
+                    with col_rank:
+                        st.markdown("**Detalle por entidad:**")
+                        tabla_art = sub_s[[
+                            "nivel_alerta","entidad","precio_promedio_ent",
+                            "sobreprecio_pct","cantidad_compras","proveedor_mas_frecuente"
+                        ]].rename(columns={
+                            "nivel_alerta":"Alerta","entidad":"Entidad",
+                            "precio_promedio_ent":"Precio Prom (₲)",
+                            "sobreprecio_pct":"Sobreprecio %",
+                            "cantidad_compras":"Compras",
+                            "proveedor_mas_frecuente":"Proveedor"
+                        })
+                        st.dataframe(tabla_art, use_container_width=True, height=360,
+                                     column_config={
+                                         "Precio Prom (₲)": st.column_config.NumberColumn(format="₲ %,.0f"),
+                                         "Sobreprecio %":   st.column_config.NumberColumn(format="%+.1f%%"),
+                                     })
+
+            # Tabla general
+            sec(f"Ranking de Anomalías — {min(len(filtrado_c),3000):,} de {len(filtrado_c):,} registros")
+
+            _cols_anom = [c for c in [
+                "nivel_alerta","nombre_catalogo","entidad",
+                "precio_promedio_ent","precio_mediano",
+                "indice_anomalia","sobreprecio_pct",
+                "cantidad_compras","proveedor_mas_frecuente","ruc_proveedor","codigo_catalogo"
+            ] if c in filtrado_c.columns]
+            _rename_anom = {
+                "nivel_alerta":"Alerta","nombre_catalogo":"Artículo","entidad":"Entidad",
+                "precio_promedio_ent":"Precio Prom (₲)","precio_mediano":"Mediana (₲)",
+                "indice_anomalia":"Índice","sobreprecio_pct":"Sobreprecio %",
+                "cantidad_compras":"Compras","proveedor_mas_frecuente":"Proveedor",
+                "ruc_proveedor":"RUC Proveedor","codigo_catalogo":"Código",
+            }
+            tabla_c = filtrado_c.sort_values("indice_anomalia", ascending=False).head(3000)[_cols_anom].rename(columns=_rename_anom)
+
+            st.dataframe(tabla_c, use_container_width=True, height=440,
+                         column_config={
+                             "Precio Prom (₲)": st.column_config.NumberColumn(format="₲ %,.0f"),
+                             "Mediana (₲)":     st.column_config.NumberColumn(format="₲ %,.0f"),
+                             "Índice":          st.column_config.NumberColumn(format="%.2f×"),
+                             "Sobreprecio %":   st.column_config.NumberColumn(format="%+.1f%%"),
+                         })
+
+            csv_c = tabla_c.to_csv(index=False).encode("utf-8-sig")
+            st.download_button("⬇️ Descargar CSV de anomalías", csv_c,
+                               file_name="dncp_anomalias_precios.csv",
+                               mime="text/csv", key="dl_anomalias")
+
+            with st.expander("📖 Metodología y limitaciones"):
+                st.markdown("""
+**Fuente de datos:** Datos abiertos DNCP (contrataciones.gov.py) — 100% reales, año 2025.
+
+**¿Qué es la "mediana de mercado"?**
+Es el precio mediano que el conjunto de instituciones públicas pagó por el mismo artículo
+(mismo código de catálogo oficial). No es un precio de mercado privado externo,
+sino el precio de referencia interno del Estado paraguayo.
+
+| Nivel | Criterio | Interpretación |
+|---|---|---|
+| 🚨 CRÍTICO | Índice > 2.0× | Paga más del doble que la mediana |
+| ⚠️ Alto    | Índice > 1.5× | Paga 50%+ sobre la mediana |
+| 🟡 Moderado | Índice > 1.2× | Paga 20%+ sobre la mediana |
+| ✅ Normal  | Índice ≤ 1.2× | Dentro del rango normal |
+| 🔵 Muy bajo | Índice < 0.5× | Posible error o unidad diferente |
+
+**Limitaciones:** Un mismo artículo con distintas presentaciones o calidades puede aparecer
+como "anómalo" sin serlo. Se recomienda revisar la unidad de medida y la descripción detallada.
+Solo se muestran artículos comprados por **al menos 2 entidades distintas**.
+                """)
+
+# ─── Footer ───────────────────────────────────────────────────────────────────
+# ══ TAB 6 — RED DE ACTORES ════════════════════════════════════════════════════
+with tab6:
+    st.markdown("<br>", unsafe_allow_html=True)
+    sec("🕸️ Red de Actores: Entidades ↔ Proveedores")
+    st.markdown("""
+    <div style="background:#e3f2fd;border-left:4px solid #1565c0;border-radius:6px;
+                padding:12px 16px;margin-bottom:12px;font-size:13px;color:#0d47a1">
+    <b>¿Cómo leer este grafo?</b>&nbsp; Los nodos <b style="color:#1565c0">azules</b> son
+    entidades públicas · Los nodos <b style="color:#e65100">naranjas</b> son proveedores ·
+    El tamaño del nodo indica el monto total contratado · El grosor de la arista indica
+    la cantidad de contratos entre ese par. Detectá proveedores que abastecen a muchas
+    entidades o entidades que dependen de un solo proveedor.
+    </div>""", unsafe_allow_html=True)
+
+    RED_F = CACHE_DIR / "adjudicaciones" / "red_actores.parquet"
+
+    @st.cache_data(ttl=600, show_spinner="Cargando red de actores...")
+    def load_red():
+        if not RED_F.exists(): return pd.DataFrame()
+        df = pd.read_parquet(RED_F)
+        df["entidad"]   = df["entidad"].astype(str).str.strip()
+        df["proveedor"] = df["proveedor"].astype(str).str.strip()
+        return df
+
+    red = load_red()
+
+    if red.empty:
+        st.info("Datos de red no disponibles.")
+    else:
+        # ── Controles ──────────────────────────────────────────────────────────
+        g1, g2, g3, g4 = st.columns([2, 2, 2, 2])
+        with g1:
+            q_red = st.text_input("🔍 Filtrar por nombre",
+                                  placeholder="ej: IPS, salud, MOPC...",
+                                  key="red_q")
+        with g2:
+            top_n_ent = st.slider("Top N entidades", 5, 50, 20, key="red_ne")
+        with g3:
+            top_n_prov = st.slider("Top N proveedores", 5, 100, 30, key="red_np")
+        with g4:
+            min_contratos = st.slider("Mín. contratos por relación", 1, 20, 2, key="red_mc")
+
+        # Aplicar filtros
+        r = red[red["contratos"] >= min_contratos].copy()
+        if q_red.strip():
+            qq = q_red.strip().lower()
+            r  = r[r["entidad"].str.lower().str.contains(qq, na=False) |
+                   r["proveedor"].str.lower().str.contains(qq, na=False)]
+
+        # Seleccionar top N entidades y proveedores por monto
+        top_ents = r.groupby("entidad")["monto_total"].sum().nlargest(top_n_ent).index.tolist()
+        top_provs = r.groupby("proveedor")["monto_total"].sum().nlargest(top_n_prov).index.tolist()
+        r = r[r["entidad"].isin(top_ents) & r["proveedor"].isin(top_provs)]
+
+        # KPIs
+        ga, gb, gc_ = st.columns(3)
+        with ga:  kpi("Entidades en red",   r["entidad"].nunique(),   "organismos")
+        with gb:  kpi("Proveedores en red", r["proveedor"].nunique(), "empresas")
+        with gc_: kpi("Relaciones",         len(r),                   "vínculos")
+
+        if r.empty:
+            st.warning("No hay datos con estos filtros. Reducí el mínimo de contratos o ampliá el Top N.")
+        else:
+            import networkx as nx
+            import math
+
+            # ── Construir grafo ─────────────────────────────────────────────────
+            G = nx.Graph()
+            # Nodos entidades
+            ent_montos = r.groupby("entidad")["monto_total"].sum()
+            for e, m in ent_montos.items():
+                G.add_node(e, tipo="entidad", monto=m)
+            # Nodos proveedores
+            prov_montos = r.groupby("proveedor")["monto_total"].sum()
+            for p, m in prov_montos.items():
+                G.add_node(p, tipo="proveedor", monto=m)
+            # Aristas
+            for _, row in r.iterrows():
+                G.add_edge(row["entidad"], row["proveedor"],
+                           weight=row["contratos"], monto=row["monto_total"])
+
+            # Layout spring con semilla fija
+            pos = nx.spring_layout(G, seed=42, k=2.5/math.sqrt(len(G.nodes)),
+                                   iterations=60, weight="weight")
+
+            # ── Aristas (trazados) ──────────────────────────────────────────────
+            MAX_W = max(d["weight"] for _, _, d in G.edges(data=True)) or 1
+            edge_traces = []
+            for u, v, d in G.edges(data=True):
+                x0,y0 = pos[u]; x1,y1 = pos[v]
+                lw = 0.5 + 3.0 * d["weight"] / MAX_W
+                hover = (f"{u[:35]}<br>↔ {v[:35]}<br>"
+                         f"Contratos: {d['weight']:,}<br>"
+                         f"Monto: ₲ {d['monto']:,.0f}")
+                edge_traces.append(go.Scatter(
+                    x=[x0,x1,None], y=[y0,y1,None], mode="lines",
+                    line=dict(color="rgba(120,144,156,0.45)", width=lw),
+                    hoverinfo="text", text=hover, showlegend=False
+                ))
+
+            # ── Nodos ─────────────────────────────────────────────────────────
+            def node_traces(tipo, color, label):
+                nodes_t = [(n, d) for n, d in G.nodes(data=True) if d.get("tipo")==tipo]
+                if not nodes_t: return None
+                MAX_M = max(d["monto"] for _,d in nodes_t) or 1
+                xs, ys, sizes, texts, hovs = [], [], [], [], []
+                for n, d in nodes_t:
+                    xs.append(pos[n][0]); ys.append(pos[n][1])
+                    deg = G.degree(n)
+                    sz  = 10 + 30 * (d["monto"] / MAX_M) ** 0.4
+                    sizes.append(sz)
+                    texts.append(n[:28] + ("…" if len(n) > 28 else ""))
+                    hovs.append(f"<b>{n}</b><br>Tipo: {label}<br>"
+                                f"Conexiones: {deg}<br>Monto: ₲ {d['monto']:,.0f}")
+                return go.Scatter(
+                    x=xs, y=ys, mode="markers+text", name=label,
+                    marker=dict(size=sizes, color=color, opacity=0.88,
+                                line=dict(color="white", width=1.5)),
+                    text=texts, textposition="top center",
+                    textfont=dict(size=8, color="#263238"),
+                    hoverinfo="text", hovertext=hovs
+                )
+
+            nt_ent  = node_traces("entidad",   "#1565c0", "Entidad Pública")
+            nt_prov = node_traces("proveedor", "#e65100", "Proveedor")
+
+            fig_red = go.Figure(
+                data=edge_traces +
+                     ([nt_ent]  if nt_ent  else []) +
+                     ([nt_prov] if nt_prov else []),
+                layout=go.Layout(
+                    title=dict(text=f"Red de Contrataciones — {r['entidad'].nunique()} entidades · "
+                                    f"{r['proveedor'].nunique()} proveedores",
+                               font=dict(size=14, color=TXT)),
+                    showlegend=True,
+                    legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.85)",
+                                bordercolor="#cfd8dc", borderwidth=1),
+                    hovermode="closest",
+                    paper_bgcolor=BG, plot_bgcolor=BG,
+                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                    margin=dict(l=0, r=0, t=44, b=0),
+                    height=700,
+                )
+            )
+            st.plotly_chart(fig_red, use_container_width=True, key="red_grafo")
+
+            # ── Tabla de relaciones más fuertes ────────────────────────────────
+            sec("📊 Relaciones más importantes")
+            tabla_red = r.sort_values("monto_total", ascending=False).head(50).copy()
+            tabla_red["monto_total"] = tabla_red["monto_total"].map(lambda x: f"₲ {x:,.0f}")
+            _red_rename = {"entidad":"Entidad","proveedor":"Proveedor","contratos":"Contratos",
+                           "monto_total":"Monto Total","ruc":"RUC Proveedor"}
+            tabla_red = tabla_red.rename(columns=_red_rename)
+            st.dataframe(tabla_red, use_container_width=True, height=300)
+
+            csv_red = r.to_csv(index=False).encode("utf-8-sig")
+            st.download_button("⬇️ Exportar red como CSV", csv_red,
+                               file_name="dncp_red_actores.csv",
+                               mime="text/csv", key="dl_red")
+
+# ── Footer ─────────────────────────────────────────────────────────────────────
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("""
+<div style="background:#1a237e;border-radius:12px;padding:16px 24px;text-align:center">
+  <span style="color:rgba(255,255,255,0.65);font-size:12px">
+  Datos: <a href="https://contrataciones.gov.py/datos" style="color:#90caf9">DNCP Paraguay</a> ·
+  Licencia <a href="https://creativecommons.org/licenses/by/4.0/" style="color:#90caf9">CC BY 4.0</a> ·
+  <a href="https://github.com/diegomezapy/tableroDNCPpy" style="color:#90caf9">Código fuente</a>
+  </span>
+</div>
+""", unsafe_allow_html=True)
