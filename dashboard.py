@@ -314,13 +314,12 @@ with c8: kpi("Anomalías detectadas",10_769 + 4_739,             "CRÍTICO + Alt
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ─── Tabs ─────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "📋 Convocatorias",
     "🏆 Adjudicaciones",
     "📄 Contratos",
     "🔍 Detalle de Ítems",
     "🚨 Anomalías de Precios",
-    "🕸️ Red de Actores",
 ])
 
 # ══ TAB 1 ═════════════════════════════════════════════════════════════════════
@@ -879,167 +878,6 @@ como "anómalo" sin serlo. Se recomienda revisar la unidad de medida y la descri
 Solo se muestran artículos comprados por **al menos 2 entidades distintas**.
                 """)
 
-# ─── Footer ───────────────────────────────────────────────────────────────────
-# ══ TAB 6 — RED DE ACTORES ════════════════════════════════════════════════════
-with tab6:
-    st.markdown("<br>", unsafe_allow_html=True)
-    sec("🕸️ Red de Actores: Entidades ↔ Proveedores")
-    st.markdown("""
-    <div style="background:#e3f2fd;border-left:4px solid #1565c0;border-radius:6px;
-                padding:12px 16px;margin-bottom:12px;font-size:13px;color:#0d47a1">
-    <b>¿Cómo leer este grafo?</b>&nbsp; Los nodos <b style="color:#1565c0">azules</b> son
-    entidades públicas · Los nodos <b style="color:#e65100">naranjas</b> son proveedores ·
-    El tamaño del nodo indica el monto total contratado · El grosor de la arista indica
-    la cantidad de contratos entre ese par. Detectá proveedores que abastecen a muchas
-    entidades o entidades que dependen de un solo proveedor.
-    </div>""", unsafe_allow_html=True)
-
-    RED_F = CACHE_DIR / "adjudicaciones" / "red_actores.parquet"
-
-    @st.cache_data(ttl=600, show_spinner="Cargando red de actores...")
-    def load_red():
-        if not RED_F.exists(): return pd.DataFrame()
-        df = pd.read_parquet(RED_F)
-        df["entidad"]   = df["entidad"].astype(str).str.strip()
-        df["proveedor"] = df["proveedor"].astype(str).str.strip()
-        return df
-
-    red = load_red()
-
-    if red.empty:
-        st.info("Datos de red no disponibles.")
-    else:
-        # ── Controles ──────────────────────────────────────────────────────────
-        g1, g2, g3, g4 = st.columns([2, 2, 2, 2])
-        with g1:
-            q_red = st.text_input("🔍 Filtrar por nombre",
-                                  placeholder="ej: IPS, salud, MOPC...",
-                                  key="red_q")
-        with g2:
-            top_n_ent = st.slider("Top N entidades", 5, 50, 20, key="red_ne")
-        with g3:
-            top_n_prov = st.slider("Top N proveedores", 5, 100, 30, key="red_np")
-        with g4:
-            min_contratos = st.slider("Mín. contratos por relación", 1, 20, 2, key="red_mc")
-
-        # Aplicar filtros
-        r = red[red["contratos"] >= min_contratos].copy()
-        if q_red.strip():
-            qq = q_red.strip().lower()
-            r  = r[r["entidad"].str.lower().str.contains(qq, na=False) |
-                   r["proveedor"].str.lower().str.contains(qq, na=False)]
-
-        # Seleccionar top N entidades y proveedores por monto
-        top_ents = r.groupby("entidad")["monto_total"].sum().nlargest(top_n_ent).index.tolist()
-        top_provs = r.groupby("proveedor")["monto_total"].sum().nlargest(top_n_prov).index.tolist()
-        r = r[r["entidad"].isin(top_ents) & r["proveedor"].isin(top_provs)]
-
-        # KPIs
-        ga, gb, gc_ = st.columns(3)
-        with ga:  kpi("Entidades en red",   r["entidad"].nunique(),   "organismos")
-        with gb:  kpi("Proveedores en red", r["proveedor"].nunique(), "empresas")
-        with gc_: kpi("Relaciones",         len(r),                   "vínculos")
-
-        if r.empty:
-            st.warning("No hay datos con estos filtros. Reducí el mínimo de contratos o ampliá el Top N.")
-        else:
-            import networkx as nx
-            import math
-
-            # ── Construir grafo ─────────────────────────────────────────────────
-            G = nx.Graph()
-            # Nodos entidades
-            ent_montos = r.groupby("entidad")["monto_total"].sum()
-            for e, m in ent_montos.items():
-                G.add_node(e, tipo="entidad", monto=m)
-            # Nodos proveedores
-            prov_montos = r.groupby("proveedor")["monto_total"].sum()
-            for p, m in prov_montos.items():
-                G.add_node(p, tipo="proveedor", monto=m)
-            # Aristas
-            for _, row in r.iterrows():
-                G.add_edge(row["entidad"], row["proveedor"],
-                           weight=row["contratos"], monto=row["monto_total"])
-
-            # Layout spring con semilla fija
-            pos = nx.spring_layout(G, seed=42, k=2.5/math.sqrt(len(G.nodes)),
-                                   iterations=60, weight="weight")
-
-            # ── Aristas (trazados) ──────────────────────────────────────────────
-            MAX_W = max(d["weight"] for _, _, d in G.edges(data=True)) or 1
-            edge_traces = []
-            for u, v, d in G.edges(data=True):
-                x0,y0 = pos[u]; x1,y1 = pos[v]
-                lw = 0.5 + 3.0 * d["weight"] / MAX_W
-                hover = (f"{u[:35]}<br>↔ {v[:35]}<br>"
-                         f"Contratos: {d['weight']:,}<br>"
-                         f"Monto: ₲ {d['monto']:,.0f}")
-                edge_traces.append(go.Scatter(
-                    x=[x0,x1,None], y=[y0,y1,None], mode="lines",
-                    line=dict(color="rgba(120,144,156,0.45)", width=lw),
-                    hoverinfo="text", text=hover, showlegend=False
-                ))
-
-            # ── Nodos ─────────────────────────────────────────────────────────
-            def node_traces(tipo, color, label):
-                nodes_t = [(n, d) for n, d in G.nodes(data=True) if d.get("tipo")==tipo]
-                if not nodes_t: return None
-                MAX_M = max(d["monto"] for _,d in nodes_t) or 1
-                xs, ys, sizes, texts, hovs = [], [], [], [], []
-                for n, d in nodes_t:
-                    xs.append(pos[n][0]); ys.append(pos[n][1])
-                    deg = G.degree(n)
-                    sz  = 10 + 30 * (d["monto"] / MAX_M) ** 0.4
-                    sizes.append(sz)
-                    texts.append(n[:28] + ("…" if len(n) > 28 else ""))
-                    hovs.append(f"<b>{n}</b><br>Tipo: {label}<br>"
-                                f"Conexiones: {deg}<br>Monto: ₲ {d['monto']:,.0f}")
-                return go.Scatter(
-                    x=xs, y=ys, mode="markers+text", name=label,
-                    marker=dict(size=sizes, color=color, opacity=0.88,
-                                line=dict(color="white", width=1.5)),
-                    text=texts, textposition="top center",
-                    textfont=dict(size=8, color="#263238"),
-                    hoverinfo="text", hovertext=hovs
-                )
-
-            nt_ent  = node_traces("entidad",   "#1565c0", "Entidad Pública")
-            nt_prov = node_traces("proveedor", "#e65100", "Proveedor")
-
-            fig_red = go.Figure(
-                data=edge_traces +
-                     ([nt_ent]  if nt_ent  else []) +
-                     ([nt_prov] if nt_prov else []),
-                layout=go.Layout(
-                    title=dict(text=f"Red de Contrataciones — {r['entidad'].nunique()} entidades · "
-                                    f"{r['proveedor'].nunique()} proveedores",
-                               font=dict(size=14, color=TXT)),
-                    showlegend=True,
-                    legend=dict(x=0.01, y=0.99, bgcolor="rgba(255,255,255,0.85)",
-                                bordercolor="#cfd8dc", borderwidth=1),
-                    hovermode="closest",
-                    paper_bgcolor=BG, plot_bgcolor=BG,
-                    xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                    yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                    margin=dict(l=0, r=0, t=44, b=0),
-                    height=700,
-                )
-            )
-            st.plotly_chart(fig_red, use_container_width=True, key="red_grafo")
-
-            # ── Tabla de relaciones más fuertes ────────────────────────────────
-            sec("📊 Relaciones más importantes")
-            tabla_red = r.sort_values("monto_total", ascending=False).head(50).copy()
-            tabla_red["monto_total"] = tabla_red["monto_total"].map(lambda x: f"₲ {x:,.0f}")
-            _red_rename = {"entidad":"Entidad","proveedor":"Proveedor","contratos":"Contratos",
-                           "monto_total":"Monto Total","ruc":"RUC Proveedor"}
-            tabla_red = tabla_red.rename(columns=_red_rename)
-            st.dataframe(tabla_red, use_container_width=True, height=300)
-
-            csv_red = r.to_csv(index=False).encode("utf-8-sig")
-            st.download_button("⬇️ Exportar red como CSV", csv_red,
-                               file_name="dncp_red_actores.csv",
-                               mime="text/csv", key="dl_red")
 
 # ── Footer ─────────────────────────────────────────────────────────────────────
 st.markdown("<br>", unsafe_allow_html=True)
