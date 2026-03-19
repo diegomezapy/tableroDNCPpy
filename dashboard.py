@@ -216,6 +216,14 @@ with st.sidebar:
         total_kb = sum(p.stat().st_size for p in CACHE_DIR.rglob("*.parquet")) // 1024
         st.success(f"✅ Cache: {total_kb:,} KB")
     st.markdown("**💾 [Ver código en GitHub](https://github.com/diegomezapy/tableroDNCPpy)**")
+    st.divider()
+    st.markdown("##### 🔢 Buscar por RUC del proveedor")
+    ruc_global = st.text_input("",
+                               placeholder="ej: 80004886-5  o  80074991",
+                               key="ruc_global",
+                               label_visibility="collapsed")
+    if ruc_global.strip():
+        st.caption(f"🔍 Filtrando por RUC: **{ruc_global.strip()}**")
 
 # ─── Header ──────────────────────────────────────────────────────────────────
 st.markdown("""
@@ -314,10 +322,9 @@ with c8: kpi("Anomalías detectadas",10_769 + 4_739,             "CRÍTICO + Alt
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ─── Tabs ─────────────────────────────────────────────────────────────────────
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "📋 Convocatorias",
     "🏆 Adjudicaciones",
-    "📄 Contratos",
     "🔍 Detalle de Ítems",
     "🚨 Anomalías de Precios",
 ])
@@ -440,15 +447,19 @@ with tab1:
                                  "Monto Estimado (₲)", format="₲ %,.0f"),
                          })
             csv_l = res[cols_show].to_csv(index=False).encode("utf-8-sig")
-            q_slug = q.strip().replace(" ","_")[:30] if q.strip() else "todas"
-            st.download_button("⬇️ Descargar CSV", csv_l,
-                               file_name=f"dncp_licitaciones_{q_slug}.csv",
-                               mime="text/csv", key="dl_licit")
+        if ruc_global.strip():
+            st.info("🔢 Filtro por RUC activo — este tab muestra datos agregados de convocatorias (sin RUC disponible). Revisas los Tabs 🔍 Detalle de Ítems y 🚨 Anomalías para ver resultados filtrados por RUC.")
 
-# ══ TAB 2 ═════════════════════════════════════════════════════════════════════
+# ══ TAB 2 — ADJUDICACIONES ═════════════════════════════════════════════════════
 with tab2:
     st.markdown("<br>", unsafe_allow_html=True)
-    tp = d["tprov"]
+    # Aplicar filtro RUC global en top_proveedores
+    tp = d["tprov"].copy()
+    if ruc_global.strip() and "ruc" in tp.columns:
+        tp = tp[tp["ruc"].astype(str).str.contains(ruc_global.strip(), case=False, na=False)]
+        if tp.empty:
+            st.warning(f"🔢 Sin resultados para RUC **{ruc_global.strip()}** en el top de proveedores. Puede que el proveedor no esté entre los 20 principales.")
+    ce, cf = st.columns(2)
     ce, cf = st.columns(2)
     with ce:
         sec("Top 20 Proveedores por Monto Adjudicado")
@@ -499,53 +510,8 @@ with tab2:
         sec("Muestra de Adjudicaciones")
         st.dataframe(ma, use_container_width=True, height=300)
 
-# ══ TAB 3 ═════════════════════════════════════════════════════════════════════
+# ══ TAB 3 — DETALLE DE ÍTEMS ══════════════════════════════════════════════════
 with tab3:
-    st.markdown("<br>", unsafe_allow_html=True)
-    ek = d["ea_k"]
-    ci, cj = st.columns(2)
-    with ci:
-        sec("Contratos por Año")
-        if not ek.empty:
-            fig9 = px.bar(ek, x="anio", y="cantidad",
-                          title="N° Contratos Firmados por Año",
-                          color_discrete_sequence=["#2e7d32"],
-                          labels={"anio":"Año","cantidad":"Contratos"})
-            fig9.update_layout(**chart_layout())
-            st.plotly_chart(fig9, use_container_width=True, key="k_anio_cant")
-        else: emptyfig("ef_k1")
-    with cj:
-        sec("Monto Total de Contratos")
-        if not ek.empty:
-            fig10 = px.area(ek, x="anio", y="monto",
-                            title="Monto Total de Contratos por Año (₲)",
-                            color_discrete_sequence=["#2e7d32"],
-                            labels={"anio":"Año","monto":"Monto (₲)"})
-            fig10.update_traces(fill="tozeroy", fillcolor="rgba(46,125,50,0.10)",
-                                line=dict(color="#2e7d32", width=2))
-            fig10.update_layout(**chart_layout())
-            st.plotly_chart(fig10, use_container_width=True, key="k_anio_monto")
-        else: emptyfig("ef_k2")
-
-    sec("Evolución Mensual de Contratos")
-    emk = d["em_k"]
-    if not emk.empty:
-        fig11 = px.line(emk, x="mes", y="monto",
-                        title="Monto Mensual de Contratos (₲)",
-                        color_discrete_sequence=["#2e7d32"], markers=True,
-                        labels={"mes":"Mes","monto":"Monto (₲)"})
-        fig11.update_traces(line=dict(width=2.5), marker=dict(size=7))
-        fig11.update_layout(**chart_layout())
-        st.plotly_chart(fig11, use_container_width=True, key="k_mes_monto")
-    else: emptyfig("ef_k3")
-
-    mk = d["mk"]
-    if not mk.empty:
-        sec("Muestra de Contratos")
-        st.dataframe(mk, use_container_width=True, height=300)
-
-# ══ TAB 4 ═════════════════════════════════════════════════════════════════════
-with tab4:
     st.markdown("<br>", unsafe_allow_html=True)
     ITEMS_F = CACHE_DIR / "adjudicaciones" / "items_detalle.parquet"
 
@@ -571,13 +537,12 @@ with tab4:
             entidades_disp = ["(Todas)"] + sorted(items["entidad"].dropna().unique().tolist())
             sel_entidad = st.selectbox("🏛️ Entidad compradora", entidades_disp)
 
-        fi3, fi4 = st.columns([2, 3])
+        fi3 = st.columns(1)[0]
         with fi3:
             sel_anio = st.selectbox("📅 Año", ["Todos"] + sorted(items["anio"].unique().tolist(), reverse=True))
-        with fi4:
-            ruc_q = st.text_input("🔢 Buscar por RUC del proveedor",
-                                  placeholder="ej: 80004886-5  o  80074991",
-                                  key="items_ruc_q")
+
+        if ruc_global.strip():
+            st.info(f"🔢 Filtrando por RUC: **{ruc_global.strip()}** (filtro global desde el panel lateral)")
 
         filtrado = items.copy()
         if buscar.strip():
@@ -589,8 +554,8 @@ with tab4:
             filtrado = filtrado[filtrado["entidad"] == sel_entidad]
         if sel_anio != "Todos":
             filtrado = filtrado[filtrado["anio"] == int(sel_anio)]
-        if ruc_q.strip() and "ruc" in filtrado.columns:
-            filtrado = filtrado[filtrado["ruc"].str.contains(ruc_q.strip(), case=False, na=False)]
+        if ruc_global.strip() and "ruc" in filtrado.columns:
+            filtrado = filtrado[filtrado["ruc"].str.contains(ruc_global.strip(), case=False, na=False)]
 
         st.markdown("<br>", unsafe_allow_html=True)
         k1, k2, k3, k4 = st.columns(4)
@@ -667,13 +632,13 @@ with tab4:
                          })
             csv = tabla.to_csv(index=False).encode("utf-8-sig")
             entidad_slug = sel_entidad.replace(" ","_")[:30] if sel_entidad != "(Todas)" else "todas"
-            buscar_slug  = (ruc_q.strip() or buscar.strip()).replace(" ","_")[:20] or "items"
+            buscar_slug  = (ruc_global.strip() or buscar.strip()).replace(" ","_")[:20] or "items"
             st.download_button("⬇️ Descargar CSV", csv,
                                file_name=f"dncp_{entidad_slug}_{buscar_slug}.csv",
                                mime="text/csv", key="dl_items")
 
-# ══ TAB 5 ═════════════════════════════════════════════════════════════════════
-with tab5:
+# ══ TAB 4 — ANOMALÍAS DE PRECIOS ═════════════════════════════════════════════
+with tab4:
     st.markdown("<br>", unsafe_allow_html=True)
     COMP_F = CACHE_DIR / "adjudicaciones" / "comparacion_precios.parquet"
 
@@ -737,14 +702,13 @@ Los datos son 100% reales — provienen de los datos abiertos de <a href="https:
             alertas_opciones = ["Todas", "🚨 CRÍTICO", "⚠️ Alto", "🟡 Moderado", "✅ Normal"]
             sel_alerta = st.selectbox("🚦 Nivel de alerta", alertas_opciones, key="comp_alerta")
 
-        fc, fd = st.columns([3, 3])
+        fc = st.columns(1)[0]
         with fc:
             entidades_comp = ["(Todas)"] + sorted(comp["entidad"].dropna().unique().tolist())
             sel_ent_comp   = st.selectbox("🏛️ Entidad", entidades_comp, key="comp_entidad")
-        with fd:
-            ruc_comp = st.text_input("🔢 RUC del proveedor",
-                                     placeholder="ej: 80004886-5  o  80017044",
-                                     key="comp_ruc")
+
+        if ruc_global.strip():
+            st.info(f"🔢 Filtrando por RUC: **{ruc_global.strip()}** (filtro global desde el panel lateral)")
 
         filtrado_c = comp.copy()
         if buscar_art.strip():
@@ -756,8 +720,8 @@ Los datos son 100% reales — provienen de los datos abiertos de <a href="https:
             filtrado_c = filtrado_c[filtrado_c["nivel_alerta"] == sel_alerta]
         if sel_ent_comp != "(Todas)":
             filtrado_c = filtrado_c[filtrado_c["entidad"] == sel_ent_comp]
-        if ruc_comp.strip() and "ruc_proveedor" in filtrado_c.columns:
-            filtrado_c = filtrado_c[filtrado_c["ruc_proveedor"].str.contains(ruc_comp.strip(), case=False, na=False)]
+        if ruc_global.strip() and "ruc_proveedor" in filtrado_c.columns:
+            filtrado_c = filtrado_c[filtrado_c["ruc_proveedor"].str.contains(ruc_global.strip(), case=False, na=False)]
 
         st.caption(f"Mostrando {len(filtrado_c):,} registros")
 
