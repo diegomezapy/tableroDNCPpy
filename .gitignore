@@ -1,8 +1,8 @@
 # Datos crudos descargados (pueden ser GBs)
 data/
 
-# Cache Parquet generado por processor.py
-cache/
+# Cache Parquet generado por processor.py — SE INCLUYE en git para Streamlit Cloud
+# cache/
 
 # Entorno virtual Python
 .venv/
