@@ -82,3 +82,6 @@
 - Correccion tecnica: `price_alerts.json` ahora incluye `anios_observados`, `meses_observados`, `fecha_min_observada`, `fecha_max_observada` y `rubro`.
 - Criterio: anio y mes se aplican al ranking de precios usando fechas observadas del detalle de items; concentracion aplica entidad, proveedor, nivel y texto, porque no tiene periodo confiable en el cache actual.
 - Version actualizada: `APP_VERSION=0.1.3`, `DATA_VERSION=dncp-cache-2025-ref-v3`.
+- Commit main: `18e807b`.
+- Commit gh-pages: `564c824`.
+- Deployment Apps Script v0.1.3 creado: `AKfycbzcb_DuKJR_CXAkkQrgaBJWkaxoC1CKN4YL39VI-sa9ckNkRVPepESmQaAE6bDN8m4nXg`.
