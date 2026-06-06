@@ -45,3 +45,9 @@
 - Brecha detectada: `items_detalle.parquet`, `comparacion_precios.parquet`, `red_actores.parquet`, `catalogo_ruc.parquet` y `licitaciones_full.parquet` fueron agregados ya construidos en el commit inicial visible `c20af15`.
 - Documento agregado: `docs/trazabilidad_datos.md`.
 - Recomendacion pendiente: agregar generador reproducible de caches avanzados y manifiestos `data/download_manifest.json` y `cache/cache_manifest.json` con URL, fecha, bytes, SHA256, comando, version y cobertura temporal.
+
+### Bitacora central espejo
+
+- Se creo bitacora central del proyecto en `I:\Mi unidad\MANUAL_MAESTRO_FORMATOS_FUNCIONES_APPWEB\BITACORAS_PROYECTOS\BITACORA_LICITABAYES_DNCP_TABLERODNCPPY.md`.
+- Se creo indice central en `I:\Mi unidad\MANUAL_MAESTRO_FORMATOS_FUNCIONES_APPWEB\BITACORAS_PROYECTOS\INDICE_BITACORAS.md`.
+- Regla operativa nueva: desde este hito, cada proyecto debe mantener una bitacora local y una copia central claramente identificada en la carpeta maestra.
