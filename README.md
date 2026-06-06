@@ -87,9 +87,20 @@ syncFromGithub()
 
 ## Publicacion GitHub Pages
 
-El workflow `.github/workflows/pages.yml` publica la raiz del repo como sitio estatico.
+La URL publica es:
 
-Si GitHub Pages no esta habilitado, activar Pages con fuente `GitHub Actions` en la configuracion del repositorio.
+```text
+https://diegomezapy.github.io/tableroDNCPpy/
+```
+
+El sitio se publica desde la rama `gh-pages`, que contiene solo los archivos estaticos necesarios.
+
+Si GitHub Pages se desactiva, activar Pages con fuente `Deploy from a branch` y seleccionar:
+
+```text
+Branch: gh-pages
+Folder: /
+```
 
 ## Validacion local
 

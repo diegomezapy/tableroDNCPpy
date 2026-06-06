@@ -16,4 +16,8 @@
 - Validacion local HTTP: `http://127.0.0.1:8766/` respondio 200 para HTML, JS, service worker y `data/model_summary.json`.
 - Validacion Playwright: app renderizo 4 KPIs, 12 tarjetas, 250 filas en `Modelo Bayes` y sin errores de consola.
 - Se importo respaldo completo a Google Sheets con 1000 alertas de precio y 1000 relaciones de concentracion.
-- Pendiente: confirmar GitHub Pages activo despues del push y ejecutar `syncFromGithub()` en Apps Script cuando la URL publica responda.
+- Commit publicado en main: `feeef0b`.
+- Rama `gh-pages` publicada con commit estatico: `e5010b6`.
+- URL publica verificada: `https://diegomezapy.github.io/tableroDNCPpy/`.
+- Validacion publica Playwright: 4 KPIs, 250 filas en `Modelo Bayes` y sin errores de consola.
+- Pendiente: ejecutar `syncFromGithub()` en Apps Script si se instala el proyecto GAS para sincronizaciones posteriores.
