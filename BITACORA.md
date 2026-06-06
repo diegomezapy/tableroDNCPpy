@@ -171,6 +171,8 @@
 - Validacion ejecutada: `node --check assets/app.js`.
 - Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
 - Validacion local Playwright: capturas desktop y movil de `?tab=metodologia` cargaron referencias y formulas sin solapamientos.
+- Commit main: `dd1c0ce`.
+- Commit gh-pages: `a7d5099`.
 - Deployment Apps Script v0.1.8 creado: `AKfycbwVWTZi6vCVBJMDpGbJb4DShxxH2GrsB0MFONtRQgal7AMrZscaiXC_IpTRm9m9QI648A`.
 - Verificacion GAS: `GET /exec` del deployment v0.1.8 respondio `403 Prohibido`.
 - Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
