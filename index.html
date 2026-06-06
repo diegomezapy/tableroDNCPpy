@@ -11,7 +11,44 @@
   <script src="assets/app.js" defer></script>
 </head>
   <body>
-  <div id="appShell" class="app-shell">
+  <section id="visitGate" class="access-screen">
+    <form id="visitForm" class="visit-panel">
+      <div class="brand-mark">LB</div>
+      <p class="eyebrow">Registro de visita</p>
+      <h1>LicitaBayes DNCP</h1>
+      <p class="lead">Para entrar al panel registramos una identificacion minima de uso. No se requiere contrasena.</p>
+
+      <label for="visitorName">Nombre y apellido</label>
+      <input id="visitorName" name="visitorName" type="text" autocomplete="name" required>
+
+      <label for="visitorEmail">Correo</label>
+      <input id="visitorEmail" name="visitorEmail" type="email" autocomplete="email" placeholder="opcional">
+
+      <label for="visitorInstitution">Institucion u organizacion</label>
+      <input id="visitorInstitution" name="visitorInstitution" type="text" autocomplete="organization" required>
+
+      <label for="visitorPurpose">Motivo de consulta</label>
+      <select id="visitorPurpose" name="visitorPurpose" required>
+        <option value="">Seleccione</option>
+        <option value="Analisis institucional">Analisis institucional</option>
+        <option value="Investigacion academica">Investigacion academica</option>
+        <option value="Control ciudadano">Control ciudadano</option>
+        <option value="Revision tecnica">Revision tecnica</option>
+        <option value="Otro">Otro</option>
+      </select>
+
+      <label class="check-row">
+        <input id="visitorConsent" name="visitorConsent" type="checkbox" required>
+        <span>Acepto que esta visita quede registrada para trazabilidad del prototipo.</span>
+      </label>
+
+      <button class="primary-btn" type="submit">Entrar al panel</button>
+      <p class="notice">El registro minimo se guarda en este dispositivo y se intenta respaldar en la hoja operativa cuando Apps Script esta disponible.</p>
+      <p id="visitGateStatus" class="visit-status"></p>
+    </form>
+  </section>
+
+  <div id="appShell" class="app-shell" hidden>
     <aside class="sidebar">
       <div class="side-brand">
         <div class="brand-mark small">LB</div>
@@ -89,6 +126,9 @@
         <h2>Estado</h2>
         <p id="loadStatus">Cargando datos...</p>
         <p id="lastRun">Sin corrida cargada</p>
+        <p id="visitorLabel">Visitante no registrado</p>
+        <button id="updateVersion" class="secondary-btn" type="button">Actualizar version</button>
+        <button id="changeVisitor" class="secondary-btn" type="button">Cambiar visitante</button>
       </section>
     </aside>
 

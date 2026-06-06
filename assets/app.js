@@ -1,4 +1,5 @@
 const CONFIG = window.LICITABAYES_CONFIG || {};
+const VISITOR_KEY = "licitabayes_visitante_v1";
 
 const state = {
   summary: null,
@@ -606,15 +607,118 @@ function download(name, content, type = "text/plain") {
   URL.revokeObjectURL(url);
 }
 
-function bindEvents() {
-  $("appShell").hidden = false;
-  if ($("accessScreen")) $("accessScreen").hidden = true;
-  if ($("enterApp")) {
-    $("enterApp").addEventListener("click", () => {
-      if ($("accessScreen")) $("accessScreen").hidden = true;
-      $("appShell").hidden = false;
-    });
+function getStoredVisitor() {
+  try {
+    return JSON.parse(localStorage.getItem(VISITOR_KEY) || "null");
+  } catch {
+    return null;
   }
+}
+
+function visitorId() {
+  if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+  return `visit-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function visitorPayload(formData) {
+  const now = new Date().toISOString();
+  return {
+    id_visita: visitorId(),
+    fecha_hora: now,
+    nombre: String(formData.get("visitorName") || "").trim(),
+    correo: String(formData.get("visitorEmail") || "").trim(),
+    institucion: String(formData.get("visitorInstitution") || "").trim(),
+    motivo: String(formData.get("visitorPurpose") || "").trim(),
+    app_version: CONFIG.appVersion || "0.1.5",
+    data_version: state.summary?.data_version || "",
+    pagina: window.location.href,
+    user_agent: navigator.userAgent || "",
+    origen: "GitHub Pages"
+  };
+}
+
+function logVisit(visitor) {
+  const endpoint = String(CONFIG.gasEndpoint || "").trim();
+  if (!endpoint) return;
+  const payload = {
+    evento: "visit_register",
+    usuario: visitor.correo || visitor.nombre || "visitante",
+    modulo: "Registro visitas",
+    detalle: `${visitor.nombre} - ${visitor.institucion} - ${visitor.motivo}`,
+    observacion: "Registro minimo de visita sin contrasena",
+    data_version: visitor.data_version || "",
+    visitor
+  };
+  fetch(endpoint, {
+    method: "POST",
+    mode: "no-cors",
+    body: JSON.stringify(payload)
+  }).catch(() => {});
+}
+
+function setVisitorLabel(visitor) {
+  if (!$("visitorLabel")) return;
+  $("visitorLabel").textContent = visitor
+    ? `Visitante: ${visitor.nombre} - ${visitor.institucion}`
+    : "Visitante no registrado";
+}
+
+function showVisitGate() {
+  $("visitGate").hidden = false;
+  $("appShell").hidden = true;
+  setVisitorLabel(null);
+}
+
+function showRegisteredApp(visitor) {
+  $("visitGate").hidden = true;
+  $("appShell").hidden = false;
+  setVisitorLabel(visitor);
+}
+
+function handleVisitSubmit(event) {
+  event.preventDefault();
+  const visitor = visitorPayload(new FormData(event.currentTarget));
+  if (!visitor.nombre || !visitor.institucion || !visitor.motivo) {
+    $("visitGateStatus").textContent = "Complete nombre, institucion y motivo de consulta.";
+    return;
+  }
+  localStorage.setItem(VISITOR_KEY, JSON.stringify(visitor));
+  $("visitGateStatus").textContent = "Registro guardado. Abriendo panel...";
+  logVisit(visitor);
+  showRegisteredApp(visitor);
+  loadData().catch((error) => {
+    $("loadStatus").textContent = "Error al cargar datos";
+    console.error(error);
+  });
+}
+
+async function updateVersion() {
+  if ($("loadStatus")) $("loadStatus").textContent = "Actualizando version...";
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((key) => key.includes("licitabayes")).map((key) => caches.delete(key)));
+    }
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.update().catch(() => {})));
+    }
+  } catch (error) {
+    console.warn("No se pudo limpiar cache de version", error);
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("v", Date.now().toString());
+  window.location.replace(url.toString());
+}
+
+function bindEvents() {
+  $("visitForm").addEventListener("submit", handleVisitSubmit);
+  $("updateVersion").addEventListener("click", updateVersion);
+  $("changeVisitor").addEventListener("click", () => {
+    localStorage.removeItem(VISITOR_KEY);
+    $("visitForm").reset();
+    showVisitGate();
+  });
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
   $("alertCards").addEventListener("click", (event) => {
     const target = event.target.closest("[data-detail-hash]");
@@ -693,10 +797,16 @@ function bindEvents() {
 }
 
 bindEvents();
-loadData().catch((error) => {
-  $("loadStatus").textContent = "Error al cargar datos";
-  console.error(error);
-});
+const storedVisitor = getStoredVisitor();
+if (storedVisitor?.nombre && storedVisitor?.institucion) {
+  showRegisteredApp(storedVisitor);
+  loadData().catch((error) => {
+    $("loadStatus").textContent = "Error al cargar datos";
+    console.error(error);
+  });
+} else {
+  showVisitGate();
+}
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
