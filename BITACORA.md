@@ -216,5 +216,5 @@
 - Validacion Playwright local: `?tab=metodologia` carga la figura, la tabla con 4 filas, y en movil la tabla pasa a bloques (`display:block`).
 - Deployment Apps Script v0.1.10 creado: `AKfycbw57cvchN8cQsUoa8pyJfn3fEv4avtxC-F8-3DtmGWZ24Iv_A634aVgdzA0xGEkmRrL-w`.
 - Verificacion GAS: `GET /exec` del deployment v0.1.10 respondio `403 Prohibido`.
-- Commit main: pendiente de publicar.
-- Commit gh-pages: pendiente de publicar.
+- Commit main: `e0c7d3d`.
+- Commit gh-pages: `9e6f820`.
