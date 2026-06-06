@@ -22,6 +22,16 @@ py -3 scripts/build_static_data.py
 
 El script lee `cache/` y escribe JSON en `data/`.
 
+## Trazabilidad de datos
+
+La fuente de descarga rastreada esta documentada en:
+
+```text
+docs/trazabilidad_datos.md
+```
+
+Resumen tecnico: `downloader.py` baja ZIP masivos OCDS de DNCP para convocatorias, adjudicaciones y contratos. `processor.py` reconstruye agregados basicos desde los CSV extraidos. Los caches avanzados usados por LicitaBayes fueron incorporados ya construidos en el commit inicial visible; por eso el siguiente paso recomendado es agregar un generador reproducible para `items_detalle`, `comparacion_precios`, `red_actores`, `catalogo_ruc` y `licitaciones_full`.
+
 ## Servir localmente
 
 ```bash

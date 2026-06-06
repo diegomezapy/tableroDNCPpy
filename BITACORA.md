@@ -34,3 +34,14 @@
 - Validacion local Playwright: panel visible al cargar, 250 filas en `Modelo Bayes`, primer monto `G. 90.200.000`, sin abreviaturas monetarias y sin errores de consola.
 - Hoja de respaldo actualizada a `APP_VERSION=0.1.1`.
 - Deployment Apps Script v0.1.1 creado: `AKfycbwROIhGtWqEc2UakPVrw1qsnazj9FT7PXhGqO1rEIfx84fmWBIwivEwtJpdiS1kef29zQ`.
+
+### Rastreo de descarga de datos
+
+- Se reviso `downloader.py`: la descarga configurada usa ZIP masivos OCDS de DNCP desde `https://www.contrataciones.gov.py/images/opendata-v3/final/ocds/{year}/{file}`.
+- Modulos rastreados: `ten-masivo.zip` para convocatorias, `awa-masivo.zip` para adjudicaciones y `con-masivo.zip` para contratos.
+- Años por defecto del descargador: 2023, 2024 y 2025.
+- Verificacion por `HEAD`: los 9 ZIP configurados para 2023-2025 respondieron `200`.
+- Se reviso `processor.py`: el pipeline versionado reconstruye agregados basicos desde CSV, pero no reconstruye todos los caches avanzados del modelo bayesiano.
+- Brecha detectada: `items_detalle.parquet`, `comparacion_precios.parquet`, `red_actores.parquet`, `catalogo_ruc.parquet` y `licitaciones_full.parquet` fueron agregados ya construidos en el commit inicial visible `c20af15`.
+- Documento agregado: `docs/trazabilidad_datos.md`.
+- Recomendacion pendiente: agregar generador reproducible de caches avanzados y manifiestos `data/download_manifest.json` y `cache/cache_manifest.json` con URL, fecha, bytes, SHA256, comando, version y cobertura temporal.
