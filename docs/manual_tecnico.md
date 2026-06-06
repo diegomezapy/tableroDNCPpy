@@ -51,6 +51,18 @@ Apps Script sincroniza desde `DATA_BASE_URL`, por defecto:
 https://diegomezapy.github.io/tableroDNCPpy/data
 ```
 
+## GitHub Pages
+
+La app esta publicada desde la rama `gh-pages`.
+
+URL:
+
+```text
+https://diegomezapy.github.io/tableroDNCPpy/
+```
+
+Para republicar manualmente, copiar `index.html`, `assets/`, `data/`, `docs/`, `manifest.json` y `service-worker.js` a la rama `gh-pages`.
+
 ## Despliegue Apps Script
 
 1. Crear proyecto Apps Script.
