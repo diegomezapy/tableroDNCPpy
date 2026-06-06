@@ -102,6 +102,10 @@ El acceso al panel exige nombre, institucion u organizacion, motivo de consulta 
 
 El registro queda guardado en `localStorage` para no pedir los datos en cada recarga y se intenta respaldar en la hoja `VISITAS` mediante Apps Script. No se implementa contrasena en esta version porque el frontend es estatico en GitHub Pages; una contrasena real requiere backend con sesiones y verificacion del lado servidor.
 
+## Actualizacion de version
+
+El panel incluye el boton `Actualizar version`. Limpia caches propios de LicitaBayes, solicita actualizacion del service worker y recarga con cache-busting sin borrar el visitante registrado ni otros datos locales criticos.
+
 ## Publicacion GitHub Pages
 
 La URL publica es:

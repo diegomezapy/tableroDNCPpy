@@ -659,7 +659,7 @@ function logVisit(visitor) {
 function setVisitorLabel(visitor) {
   if (!$("visitorLabel")) return;
   $("visitorLabel").textContent = visitor
-    ? `Visitante: ${visitor.nombre} · ${visitor.institucion}`
+    ? `Visitante: ${visitor.nombre} - ${visitor.institucion}`
     : "Visitante no registrado";
 }
 
@@ -692,8 +692,28 @@ function handleVisitSubmit(event) {
   });
 }
 
+async function updateVersion() {
+  if ($("loadStatus")) $("loadStatus").textContent = "Actualizando version...";
+  try {
+    if ("caches" in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((key) => key.includes("licitabayes")).map((key) => caches.delete(key)));
+    }
+    if ("serviceWorker" in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.update().catch(() => {})));
+    }
+  } catch (error) {
+    console.warn("No se pudo limpiar cache de version", error);
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("v", Date.now().toString());
+  window.location.replace(url.toString());
+}
+
 function bindEvents() {
   $("visitForm").addEventListener("submit", handleVisitSubmit);
+  $("updateVersion").addEventListener("click", updateVersion);
   $("changeVisitor").addEventListener("click", () => {
     localStorage.removeItem(VISITOR_KEY);
     $("visitForm").reset();

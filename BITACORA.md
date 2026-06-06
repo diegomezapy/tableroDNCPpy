@@ -104,6 +104,7 @@
 - Correccion: se agrego pantalla inicial obligatoria con nombre y apellido, institucion u organizacion, motivo de consulta, correo opcional y aceptacion de trazabilidad.
 - Correccion: el panel queda oculto hasta que exista visitante registrado; se agrego regla CSS `[hidden]` para evitar que el layout se muestre debajo del formulario.
 - Correccion: el visitante se guarda en `localStorage` para continuidad de sesion local y puede cambiarse desde el panel.
+- Correccion adicional: se agrego boton `Actualizar version` para limpiar caches `licitabayes`, pedir actualizacion del service worker y recargar con parametro de version.
 - Respaldo operativo: Apps Script incorpora hoja `VISITAS` con `id_visita`, `fecha_hora`, `nombre`, `correo`, `institucion`, `motivo`, `app_version`, `data_version`, `pagina`, `user_agent`, `origen` y `raw_json`.
 - Version actualizada: `APP_VERSION=0.1.5`; `DATA_VERSION` se mantiene en `dncp-cache-2025-ref-v3`.
 - Validacion ejecutada: `node --check assets/app.js`.
@@ -111,6 +112,32 @@
 - Regeneracion ejecutada: `py -3 scripts/build_static_data.py`.
 - Validacion local Playwright: primer acceso muestra solo el registro obligatorio; con visitante guardado carga KPIs y alertas de la version `0.1.5`.
 - Commit main de implementacion: `3e9d7b7`.
+- Commit main de configuracion final: `283601b`.
+- Commit gh-pages publicado: `6bd483f`.
 - Deployment Apps Script v0.1.5 creado: `AKfycbyF7Z-QBLhtTnnezx8AJBLGbudPkQbGpEbjbBPjMxfYEW3i0NQMu7iZZi2peIIHdbuOgA`.
 - Verificacion GAS: `GET /exec` del deployment v0.1.5 respondio `403 Prohibido`.
 - Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403 antes de escribir en la hoja `VISITAS`.
+
+### Boton de actualizacion de version y cache
+
+- Objetivo: evitar que usuarios queden viendo una version vieja por cache del navegador, GitHub Pages o service worker.
+- Correccion: se agrego boton `Actualizar version` en el panel de estado.
+- Funcionamiento: borra caches propios que contengan `licitabayes`, solicita actualizacion de service workers registrados y recarga la URL con parametro `v=<timestamp>`.
+- Criterio: no borra visitante registrado, borradores ni otros datos locales criticos.
+- Version actualizada: `APP_VERSION=0.1.6`; cache del service worker `licitabayes-dncp-v0-1-6`.
+- README actualizado con el comportamiento del boton.
+- Regeneracion ejecutada: `py -3 scripts/build_static_data.py`.
+- Validacion ejecutada: `node --check assets/app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
+- Deployment Apps Script v0.1.6 creado: `AKfycbykTsry-BM_EVS5lhyt72BKMDJ4ayHEuGyIDzEYhhVXjjNqgeKxi0PsWafdS5_a0Cyc0w`.
+- Verificacion GAS: `GET /exec` del deployment v0.1.6 respondio `403 Prohibido`.
+- Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
+
+### Boton obligatorio Actualizar version
+
+- Problema reportado: la app no tenia boton visible para actualizar la version.
+- Correccion: se agrego boton `Actualizar version` en la caja lateral de estado.
+- Comportamiento: limpia caches propios que contengan `licitabayes`, solicita actualizacion del service worker y recarga con parametro `v=<timestamp>`.
+- Criterio: no borra el visitante registrado ni datos locales criticos, para no romper trazabilidad ni continuidad de uso.
+- Version actualizada: `APP_VERSION=0.1.6`; `DATA_VERSION` se mantiene en `dncp-cache-2025-ref-v3`.
+- Manual maestro actualizado: se agrego regla obligatoria para boton `Actualizar version` en toda app web publicada.
