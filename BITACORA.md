@@ -200,3 +200,21 @@
 - Verificacion GAS: `GET /exec` del deployment v0.1.9 respondio `403 Prohibido`.
 - Commit main: `ddb3dff`.
 - Commit gh-pages: `95bd731`.
+
+### Figura y tabla del aporte ciudadano de Bayes
+
+- Problema reportado: faltaba mostrar y resaltar la idea central del aporte bayesiano para la ciudadania.
+- Decision de diseno: explicar que Bayes no dicta irregularidades, sino que transforma datos abiertos masivos en una cola explicable de revision publica.
+- Mejora en Resumen: se agrego franja `Aporte ciudadano central` dentro del bloque `Motor Bayes`.
+- Mejora en Metodologia: se agrego figura de flujo `Datos abiertos DNCP -> Bayes prioriza con incertidumbre -> Revision ciudadana enfocada`.
+- Mejora en Metodologia: se agrego tabla `Problema publico / Aporte bayesiano / Que ve el usuario / Uso ciudadano responsable`.
+- Mejora responsive: en celular la tabla ciudadana se convierte en tarjetas con `data-label` para evitar columnas ilegibles.
+- Version actualizada: `APP_VERSION=0.1.10`; cache del service worker `licitabayes-dncp-v0-1-10`.
+- Regeneracion ejecutada: `py -3 scripts\build_static_data.py`.
+- Validacion ejecutada: `node --check assets\app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts\build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion Playwright local: `?tab=metodologia` carga la figura, la tabla con 4 filas, y en movil la tabla pasa a bloques (`display:block`).
+- Deployment Apps Script v0.1.10 creado: `AKfycbw57cvchN8cQsUoa8pyJfn3fEv4avtxC-F8-3DtmGWZ24Iv_A634aVgdzA0xGEkmRrL-w`.
+- Verificacion GAS: `GET /exec` del deployment v0.1.10 respondio `403 Prohibido`.
+- Commit main: pendiente de publicar.
+- Commit gh-pages: pendiente de publicar.
