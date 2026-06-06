@@ -264,5 +264,5 @@
 - Validacion ejecutada: `py -3 -m py_compile scripts\build_static_data.py dashboard.py downloader.py processor.py`.
 - Validacion Playwright local: `?tab=metodologia` muestra `.bayes-model-figure`, titulo `Regresion bayesiana: aprender el precio esperado y medir la incertidumbre`, version visible `0.1.13`.
 - Deployment Apps Script v0.1.13 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @4.
-- Commit main: pendiente de publicar.
-- Commit gh-pages: pendiente de publicar.
+- Commit main: `a180b72`.
+- Commit gh-pages: `d7b7142`.
