@@ -12,6 +12,7 @@ Priorizar revision humana sobre:
 - concentracion entidad-proveedor;
 - calidad y cobertura de datos usados por el modelo.
 - exploracion filtrable por entidad, anio, mes observado, articulo, rubro, proveedor, unidad y nivel de senal.
+- fichas explicativas clicables para entender cada clasificacion, con formula, tablas, graficos, pares comparables y lectura responsable.
 
 Las alertas son senales estadisticas exploratorias. No constituyen denuncia, prueba de irregularidad ni dictamen legal.
 

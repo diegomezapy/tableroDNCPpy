@@ -85,3 +85,11 @@
 - Commit main: `18e807b`.
 - Commit gh-pages: `564c824`.
 - Deployment Apps Script v0.1.3 creado: `AKfycbzcb_DuKJR_CXAkkQrgaBJWkaxoC1CKN4YL39VI-sa9ckNkRVPepESmQaAE6bDN8m4nXg`.
+
+### Ficha explicativa por item
+
+- Problema reportado: el usuario necesita hacer clic en cualquier item y ver una vista detallada que explique como se obtuvieron los calculos.
+- Correccion: cada tarjeta y cada fila del ranking de precios abre una ficha explicativa.
+- La ficha muestra formula de ratio, precio observado, referencia, probabilidad posterior, score, intervalo posterior, semaforo normativo orientativo, tabla de variables, pares comparables publicados y lectura responsable.
+- Se agrego enlace directo por `?detail=<hash_registro>` para compartir o validar una ficha especifica.
+- Version actualizada: `APP_VERSION=0.1.4`; `DATA_VERSION` se mantiene en `dncp-cache-2025-ref-v3`.
