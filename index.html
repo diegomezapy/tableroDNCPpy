@@ -297,12 +297,153 @@
       </section>
 
       <section id="tab-metodologia" class="tab-panel">
-        <article class="panel prose">
-          <h2>Metodologia del MVP</h2>
-          <p><strong>Modelo de precios:</strong> empirical Bayes log-normal sobre el ratio entre precio promedio pagado por una entidad y una referencia comparable por codigo y unidad. El ratio observado se transforma a escala logaritmica para que la comparacion sea estable, luego se aplica contraccion hacia ratio 1 cuando hay poca evidencia.</p>
-          <p><strong>Lectura bayesiana:</strong> la pregunta del modelo es concreta: dada la evidencia disponible y la incertidumbre de la referencia, que tan probable es que el precio institucional supere 1,5 veces el precio comparable. Por eso se muestra probabilidad, intervalo posterior y score.</p>
-          <p><strong>Modelo de concentracion:</strong> suavizado bayesiano sobre participacion entidad-proveedor, combinando monto, cantidad de contratos y cantidad de proveedores comparables por entidad.</p>
-          <p><strong>Interpretacion:</strong> el resultado es una prioridad de revision. No prueba intencionalidad ni irregularidad; orienta donde conviene mirar primero.</p>
+        <article class="panel methodology-hero">
+          <div>
+            <p class="eyebrow">Metodologia ampliada</p>
+            <h2>Como LicitaBayes transforma datos abiertos en prioridades de revision</h2>
+            <p>La app usa modelos bayesianos como sistema de priorizacion. No declara irregularidades: ordena casos para que una persona revise primero los items donde precio, referencia e incertidumbre producen una senal estadistica fuerte.</p>
+          </div>
+          <div class="method-summary">
+            <div><span>Pregunta</span><strong>Que tan atipico es este precio?</strong></div>
+            <div><span>Evidencia</span><strong>Items, unidades, entidades y transacciones comparables</strong></div>
+            <div><span>Salida</span><strong>Probabilidad posterior, score e intervalo</strong></div>
+          </div>
+        </article>
+
+        <div class="methodology-grid">
+          <article class="panel formula-card">
+            <h2>1. Fundamento bayesiano</h2>
+            <p>Bayes permite actualizar una creencia inicial con datos observados. En notacion general:</p>
+            <div class="math-box">P(theta | datos) = P(datos | theta) P(theta) / P(datos)</div>
+            <p>En esta app, <code>theta</code> representa el comportamiento latente del precio o de la concentracion. La salida no es una certeza, sino una distribucion posterior: una forma cuantificada de incertidumbre despues de observar los datos.</p>
+            <ul class="method-list">
+              <li><strong>Prior:</strong> punto de partida conservador; para precios, parte de que el ratio deberia estar cerca de 1.</li>
+              <li><strong>Verosimilitud:</strong> evidencia observada en compras, montos, unidades y pares comparables.</li>
+              <li><strong>Posterior:</strong> resultado actualizado que se usa para priorizar revision.</li>
+            </ul>
+          </article>
+
+          <article class="panel formula-card">
+            <h2>2. Referencia comparable de precio</h2>
+            <p>Antes del modelo bayesiano se construye una referencia. El error mas peligroso es comparar bienes distintos: maquinaria completa contra repuestos, metros cuadrados contra unidades, o servicios con alcances diferentes.</p>
+            <div class="math-box">referencia(codigo, unidad) = mediana entre entidades del precio observado comparable</div>
+            <p>La referencia se calcula por <code>codigo_catalogo</code> y <code>unidad</code>, priorizando mediana entre entidades para reducir el peso de una entidad con muchas compras pequenas.</p>
+          </article>
+
+          <article class="panel formula-card">
+            <h2>3. Ratio observado</h2>
+            <p>El primer indicador interpretable es el ratio:</p>
+            <div class="math-box">r_i = precio_observado_i / referencia_i</div>
+            <p>Un ratio de <code>1,00x</code> indica precio similar a la referencia. Un ratio de <code>1,50x</code> indica que el precio observado es 50% mayor que la referencia comparable. La app usa escala logaritmica porque diferencias multiplicativas se comportan mejor en esa escala.</p>
+            <div class="math-box">y_i = log(r_i)</div>
+          </article>
+
+          <article class="panel formula-card">
+            <h2>4. Contraccion empirical Bayes</h2>
+            <p>El modelo no confia igual en todas las filas. Si hay pocas transacciones o pocos pares comparables, contrae la senal hacia un resultado prudente.</p>
+            <div class="math-box">mu_i* = w_i y_i + (1 - w_i) mu_0</div>
+            <div class="math-box">w_i = evidencia_i / (evidencia_i + k)</div>
+            <p><code>mu_0</code> representa el comportamiento global esperado, cercano a ratio 1. <code>w_i</code> aumenta cuando hay mas evidencia comparable. Esta idea se apoya en la tradicion empirical Bayes: usar el conjunto de datos para estimar parte del prior y estabilizar estimaciones ruidosas.</p>
+          </article>
+
+          <article class="panel formula-card">
+            <h2>5. Probabilidad posterior de precio alto</h2>
+            <p>La pregunta operativa del panel es:</p>
+            <div class="math-box">Probabilidad = P(r_i &gt; 1,5 | datos)</div>
+            <p>Si la probabilidad es alta, el item no se marca como irregular por si mismo; queda priorizado para revisar pliego, especificacion tecnica, alcance, forma de pago, lote, urgencia y evidencia documental.</p>
+            <p>El score combina probabilidad, magnitud del ratio, cantidad de evidencia y advertencias de calidad para ordenar la cola de revision.</p>
+          </article>
+
+          <article class="panel formula-card">
+            <h2>6. Intervalo posterior</h2>
+            <p>La app muestra un intervalo porque el precio de referencia no es una verdad absoluta. Dos filas con igual ratio pueden tener distinta calidad de evidencia.</p>
+            <div class="math-box">intervalo = [q_5(r_i | datos), q_95(r_i | datos)]</div>
+            <p>Un intervalo estrecho indica mayor estabilidad de referencia. Un intervalo amplio indica que el usuario debe revisar con mas cautela antes de interpretar la senal.</p>
+          </article>
+
+          <article class="panel formula-card">
+            <h2>7. Modelo de concentracion entidad-proveedor</h2>
+            <p>Para concentracion se usa un suavizado de participacion. La idea es evitar que una proporcion extrema con muy pocos contratos tenga el mismo peso que una proporcion extrema con mucha evidencia.</p>
+            <div class="math-box">share_monto = monto_entidad_proveedor / monto_entidad</div>
+            <div class="math-box">share_suavizado = (monto_entidad_proveedor + alpha) / (monto_entidad + alpha K)</div>
+            <p>Este enfoque es coherente con priors tipo Dirichlet para proporciones: las observaciones se combinan con pseudo-conteos o pseudo-montos para estabilizar participaciones.</p>
+          </article>
+
+          <article class="panel formula-card">
+            <h2>8. Niveles de senal</h2>
+            <table class="method-table">
+              <thead>
+                <tr><th>Nivel</th><th>Lectura</th><th>Accion sugerida</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Critico</td><td>Probabilidad posterior y score muy altos.</td><td>Revisar primero con evidencia documental.</td></tr>
+                <tr><td>Alto</td><td>Desviacion fuerte, pero puede depender de contexto.</td><td>Comparar especificaciones, lote y unidad.</td></tr>
+                <tr><td>Moderado</td><td>Senal estadistica visible, menor urgencia.</td><td>Monitorear o revisar por muestreo.</td></tr>
+                <tr><td>Verificar dato</td><td>Referencia posiblemente no comparable.</td><td>Auditar unidad, catalogo y descripcion antes de inferir.</td></tr>
+                <tr><td>Normal</td><td>No aparece como prioridad estadistica.</td><td>No requiere revision prioritaria por el modelo.</td></tr>
+              </tbody>
+            </table>
+          </article>
+        </div>
+
+        <article class="panel methodology-wide">
+          <h2>Limitaciones y controles de calidad</h2>
+          <div class="method-columns">
+            <div>
+              <h3>Lo que el modelo puede hacer</h3>
+              <ul class="method-list">
+                <li>Priorizar items que merecen revision humana.</li>
+                <li>Mostrar por que una fila quedo alta: ratio, referencia, probabilidad e intervalo.</li>
+                <li>Separar casos estadisticos de casos con posible problema de dato.</li>
+                <li>Ayudar a detectar patrones repetidos por entidad, proveedor, rubro o unidad.</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Lo que el modelo no puede concluir solo</h3>
+              <ul class="method-list">
+                <li>No prueba sobreprecio, dolo ni irregularidad administrativa.</li>
+                <li>No reemplaza estudio de mercado ni precio referencial formal.</li>
+                <li>No interpreta automaticamente marcas, modelos, calidad, alcance contractual ni servicios conexos.</li>
+                <li>No corrige por completo errores de catalogo, unidad o descripciones incompletas.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel methodology-wide">
+          <h2>Bibliografia y referencias usadas como base conceptual</h2>
+          <div class="reference-grid">
+            <a target="_blank" rel="noreferrer" href="https://doi.org/10.1098/rstl.1763.0053">
+              <strong>Bayes, T. (1763)</strong>
+              <span>An Essay towards solving a Problem in the Doctrine of Chances.</span>
+              <small>Origen historico del razonamiento inverso/probabilidad posterior.</small>
+            </a>
+            <a target="_blank" rel="noreferrer" href="https://statistics.stanford.edu/technical-reports/steins-estimation-rule-and-its-competitors-empirical-bayes-approach">
+              <strong>Efron, B. y Morris, C. (1972/1973)</strong>
+              <span>Stein's Estimation Rule and its Competitors - An Empirical Bayes Approach.</span>
+              <small>Base conceptual para estabilizar estimaciones con informacion global.</small>
+            </a>
+            <a target="_blank" rel="noreferrer" href="https://sites.stat.columbia.edu/gelman/book/">
+              <strong>Gelman et al.</strong>
+              <span>Bayesian Data Analysis.</span>
+              <small>Referencia moderna para modelado bayesiano aplicado, chequeo e interpretacion.</small>
+            </a>
+            <a target="_blank" rel="noreferrer" href="https://www.routledge.com/Bayesian-Data-Analysis/Gelman-Carlin-Stern-Dunson-Vehtari-Rubin/p/book/9781439840955">
+              <strong>Gelman, Carlin, Stern, Dunson, Vehtari y Rubin (2013)</strong>
+              <span>Bayesian Data Analysis, 3rd edition.</span>
+              <small>Texto aplicado de referencia sobre inferencia, modelos jerarquicos y evaluacion.</small>
+            </a>
+            <a target="_blank" rel="noreferrer" href="https://link.springer.com/book/10.1007/0-387-71599-1">
+              <strong>Robert, C. P. (2007)</strong>
+              <span>The Bayesian Choice.</span>
+              <small>Fundamentos de inferencia bayesiana, decision y extensiones jerarquicas/empirical Bayes.</small>
+            </a>
+            <a target="_blank" rel="noreferrer" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4081639/">
+              <strong>Dirichlet-multinomial</strong>
+              <span>Modelo para conteos multiclase con sobre-dispersion.</span>
+              <small>Motivacion para suavizar participaciones y evitar proporciones extremas sin evidencia suficiente.</small>
+            </a>
+          </div>
         </article>
       </section>
     </main>

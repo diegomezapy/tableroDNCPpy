@@ -336,7 +336,9 @@ async function loadData() {
   populateFilters();
   render();
   const detailHash = new URLSearchParams(window.location.search).get("detail");
+  const tabParam = new URLSearchParams(window.location.search).get("tab");
   if (detailHash) openDetail(detailHash, false);
+  else if (tabParam && $(`tab-${tabParam}`)) setTab(tabParam);
 }
 
 function filteredPrice() {
