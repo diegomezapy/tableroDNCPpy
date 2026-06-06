@@ -198,5 +198,5 @@
 - Validacion Playwright local: en `Construccion de cancha de futbol`, la caja de etiqueta y la caja del marcador devuelven `intersects=false`.
 - Deployment Apps Script v0.1.9 creado: `AKfycbz1TsUrLQRwCea1irQhqdNPMqsc4zM7Sbbc23-RQuldXNVWPuNHQymM8YwFafWS2FyBdw`.
 - Verificacion GAS: `GET /exec` del deployment v0.1.9 respondio `403 Prohibido`.
-- Commit main: pendiente de publicar.
-- Commit gh-pages: pendiente de publicar.
+- Commit main: `ddb3dff`.
+- Commit gh-pages: `95bd731`.
