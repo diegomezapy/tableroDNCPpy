@@ -1,0 +1,10 @@
+{
+  "name": "LicitaBayes DNCP",
+  "short_name": "LicitaBayes",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F7F6",
+  "theme_color": "#0B5D3B",
+  "icons": []
+}

@@ -1,0 +1,64 @@
+# Manual tecnico
+
+## Requisitos
+
+- Python 3.10+
+- pandas
+- pyarrow
+- requests
+- tqdm
+
+Instalar:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Regenerar datos
+
+```bash
+py -3 scripts/build_static_data.py
+```
+
+El script lee `cache/` y escribe JSON en `data/`.
+
+## Servir localmente
+
+```bash
+py -3 -m http.server 8765
+```
+
+Abrir `http://127.0.0.1:8765/`.
+
+No abrir `index.html` directamente si el navegador bloquea `fetch()` sobre archivos locales.
+
+## Google Sheets
+
+La planilla de respaldo contiene:
+
+- CONFIG
+- RUNS_MODELO
+- ALERTAS_BAYES
+- CONCENTRACION
+- SNAPSHOTS
+- LOG
+- ERRORES
+- VERSIONES
+
+Apps Script sincroniza desde `DATA_BASE_URL`, por defecto:
+
+```text
+https://diegomezapy.github.io/tableroDNCPpy/data
+```
+
+## Despliegue Apps Script
+
+1. Crear proyecto Apps Script.
+2. Copiar archivos de `gas/`.
+3. Ejecutar `ensureSchema_()`.
+4. Ejecutar `syncFromGithub()`.
+5. Opcional: crear trigger con `installHourlySyncTrigger()`.
+
+## Seguridad
+
+El respaldo recomendado es `pull_from_github`: el script lee datos publicados. No se expone token en el frontend.

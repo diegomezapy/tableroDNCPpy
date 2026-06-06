@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0B5D3B">
+  <title>LicitaBayes DNCP</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/config.js"></script>
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <section id="accessScreen" class="access-screen">
+    <div class="access-panel">
+      <div class="brand-mark">LB</div>
+      <p class="eyebrow">Datos abiertos DNCP Paraguay</p>
+      <h1>LicitaBayes DNCP</h1>
+      <p class="lead">Modelo bayesiano exploratorio para priorizar revision de precios y concentracion proveedor-entidad en contrataciones publicas.</p>
+      <div class="access-actions">
+        <button id="enterApp" class="primary-btn" type="button">Entrar al panel</button>
+        <a class="ghost-link" href="docs/metodologia_bayes.md">Metodologia</a>
+      </div>
+      <p class="notice">Las alertas son senales estadisticas. No constituyen denuncia, prueba de irregularidad ni dictamen legal.</p>
+    </div>
+  </section>
+
+  <div id="appShell" class="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="side-brand">
+        <div class="brand-mark small">LB</div>
+        <div>
+          <strong>LicitaBayes</strong>
+          <span>Version <b id="appVersion">0.1.0</b></span>
+        </div>
+      </div>
+
+      <nav class="nav-buttons" aria-label="Modulos">
+        <button class="nav-btn active" type="button" data-tab="resumen">Resumen</button>
+        <button class="nav-btn" type="button" data-tab="precios">Modelo Bayes</button>
+        <button class="nav-btn" type="button" data-tab="concentracion">Concentracion</button>
+        <button class="nav-btn" type="button" data-tab="datos">Datos</button>
+        <button class="nav-btn" type="button" data-tab="respaldo">Respaldo</button>
+        <button class="nav-btn" type="button" data-tab="metodologia">Metodologia</button>
+      </nav>
+
+      <section class="filter-box">
+        <h2>Filtros</h2>
+        <label for="searchBox">Texto libre</label>
+        <input id="searchBox" type="search" placeholder="articulo, entidad, proveedor, codigo">
+
+        <span class="filter-label">Nivel de senal</span>
+        <div class="level-buttons" id="levelButtons">
+          <button class="chip active" type="button" data-level="Todos">Todos</button>
+          <button class="chip" type="button" data-level="Critico">Critico</button>
+          <button class="chip" type="button" data-level="Alto">Alto</button>
+          <button class="chip" type="button" data-level="Moderado">Moderado</button>
+          <button class="chip" type="button" data-level="Verificar dato">Verificar dato</button>
+        </div>
+
+        <button id="clearFilters" class="secondary-btn" type="button">Limpiar filtros</button>
+      </section>
+
+      <section class="status-box">
+        <h2>Estado</h2>
+        <p id="loadStatus">Cargando datos...</p>
+        <p id="lastRun">Sin corrida cargada</p>
+      </section>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Evidencia para la accion</p>
+          <h1>Riesgo estadistico en contrataciones publicas</h1>
+        </div>
+        <div class="top-actions">
+          <button id="exportBtn" class="secondary-btn" type="button">Exportar CSV</button>
+          <a class="primary-link" target="_blank" rel="noreferrer" href="https://docs.google.com/spreadsheets/d/1QJ_xagB5ze4ugYIpOosYPHBsp-o7TfQM8W8FUYSUnmQ/edit">Hoja respaldo</a>
+        </div>
+      </header>
+
+      <section class="warning-strip">
+        <strong>Uso responsable:</strong> el modelo prioriza revision humana. Un precio alto puede deberse a unidad, calidad, presentacion, urgencia, lote o carga incompleta.
+      </section>
+
+      <section id="tab-resumen" class="tab-panel active">
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="grid two">
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Distribucion de alertas de precio</h2>
+              <span id="priceCountLabel"></span>
+            </div>
+            <div id="levelChart" class="bar-chart"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Top entidades convocantes</h2>
+              <span>datos abiertos</span>
+            </div>
+            <div id="entityChart" class="bar-chart compact"></div>
+          </article>
+        </div>
+        <article class="panel">
+          <div class="panel-head">
+            <h2>Senales principales</h2>
+            <span>primeras 12 por score bayesiano</span>
+          </div>
+          <div id="alertCards" class="card-grid"></div>
+        </article>
+      </section>
+
+      <section id="tab-precios" class="tab-panel">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Ranking bayesiano de precios atipicos</h2>
+              <p>Probabilidad posterior de que el precio institucional supere 1,5 veces la referencia interna del item.</p>
+            </div>
+            <span id="filteredPriceCount"></span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Nivel</th>
+                  <th>Prob.</th>
+                  <th>Score</th>
+                  <th>Articulo</th>
+                  <th>Entidad</th>
+                  <th>Proveedor</th>
+                  <th>Precio</th>
+                  <th>Mediana</th>
+                  <th>Ratio</th>
+                </tr>
+              </thead>
+              <tbody id="priceTable"></tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <section id="tab-concentracion" class="tab-panel">
+        <div class="grid two">
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Red entidad-proveedor</h2>
+              <span>top relaciones</span>
+            </div>
+            <div id="networkView" class="network"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head">
+              <h2>Concentracion bayesiana</h2>
+              <span id="filteredConcCount"></span>
+            </div>
+            <div id="concentrationList" class="stack-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="tab-datos" class="tab-panel">
+        <div class="grid two">
+          <article class="panel">
+            <h2>Calidad y cobertura</h2>
+            <div id="qualityList" class="definition-list"></div>
+          </article>
+          <article class="panel">
+            <h2>Series disponibles</h2>
+            <div id="seriesList" class="definition-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section id="tab-respaldo" class="tab-panel">
+        <article class="panel">
+          <h2>Respaldo Google Sheets + Apps Script</h2>
+          <p>La planilla operativa guarda corridas del modelo, alertas publicadas, concentracion, snapshots, log, errores y versiones. Apps Script sincroniza desde los JSON publicados en GitHub Pages.</p>
+          <div class="action-row">
+            <a class="primary-link" target="_blank" rel="noreferrer" href="https://docs.google.com/spreadsheets/d/1QJ_xagB5ze4ugYIpOosYPHBsp-o7TfQM8W8FUYSUnmQ/edit">Abrir planilla</a>
+            <button id="downloadSnapshot" class="secondary-btn" type="button">Descargar snapshot JSON</button>
+          </div>
+          <pre id="backupInfo" class="code-box"></pre>
+        </article>
+      </section>
+
+      <section id="tab-metodologia" class="tab-panel">
+        <article class="panel prose">
+          <h2>Metodologia del MVP</h2>
+          <p><strong>Modelo de precios:</strong> empirical Bayes log-normal sobre el ratio entre precio promedio pagado por una entidad y mediana interna del mismo item. Se aplica contraccion hacia ratio 1 cuando hay poca evidencia.</p>
+          <p><strong>Modelo de concentracion:</strong> suavizado bayesiano sobre participacion entidad-proveedor, combinando monto, cantidad de contratos y cantidad de proveedores comparables por entidad.</p>
+          <p><strong>Interpretacion:</strong> el resultado es una prioridad de revision. No prueba intencionalidad ni irregularidad; orienta donde conviene mirar primero.</p>
+        </article>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
