@@ -14,7 +14,9 @@ const state = {
   year: "Todos",
   month: "Todos",
   provider: "Todos",
-  unit: "Todos"
+  unit: "Todos",
+  previousTab: "resumen",
+  selectedDetail: null
 };
 
 const $ = (id) => document.getElementById(id);
@@ -112,6 +114,132 @@ function monthName(value) {
   return ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"][Number(value)] || value;
 }
 
+function formatList(values, formatter = null) {
+  const list = Array.isArray(values) ? values : [values];
+  const clean = list.filter((value) => value !== "" && value !== null && value !== undefined);
+  if (!clean.length) return "Sin dato";
+  return clean.map((value) => formatter ? formatter(value) : value).join(", ");
+}
+
+function thresholdInfo(row) {
+  const rubro = String(row.rubro || row.codigo_catalogo || "");
+  const article = String(row.articulo || "").toLowerCase();
+  const isWorks = rubro.startsWith("72") || /obra|construccion|camino|cancha|desague|cerco|plaza/.test(article);
+  const upper = isWorks ? 1.10 : 1.15;
+  const lower = isWorks ? 0.80 : 0.75;
+  const ratio = Number(row.ratio_observado || 0);
+  let status = "Dentro de umbral normativo orientativo";
+  if (ratio > upper) status = `Supera umbral orientativo alto (+${formatNumber((upper - 1) * 100, 0)}%)`;
+  if (ratio < lower) status = `Debajo de umbral orientativo bajo (-${formatNumber((1 - lower) * 100, 0)}%)`;
+  return { type: isWorks ? "Obras/servicios constructivos" : "Bienes/servicios generales", upper, lower, status };
+}
+
+function explainLevel(row) {
+  if (row.observacion_calidad) return row.observacion_calidad;
+  const level = row.nivel_bayes || "Normal";
+  if (level === "Critico") return "Clasificado como Critico porque la probabilidad posterior o el score superan el umbral alto del modelo.";
+  if (level === "Alto") return "Clasificado como Alto porque la evidencia estadistica supera el umbral medio-alto de revision.";
+  if (level === "Moderado") return "Clasificado como Moderado porque existe una desviacion posterior que conviene revisar con contexto.";
+  if (level === "Verificar dato") return "Clasificado como Verificar dato porque la referencia puede no ser comparable o la evidencia es insuficiente.";
+  return "No presenta una senal alta en el ranking publicado.";
+}
+
+function detailPeers(row) {
+  return state.price
+    .filter((peer) => peer.hash_registro !== row.hash_registro)
+    .filter((peer) => peer.codigo_catalogo === row.codigo_catalogo && peer.unidad === row.unidad)
+    .sort((a, b) => Number(b.ratio_observado || 0) - Number(a.ratio_observado || 0))
+    .slice(0, 12);
+}
+
+function detailPeerRows(row) {
+  const peers = detailPeers(row);
+  if (!peers.length) {
+    return `<p class="muted-note">No hay otros pares publicados para el mismo codigo y unidad dentro del ranking actual.</p>`;
+  }
+  return `
+    <div class="table-wrap mini">
+      <table>
+        <thead>
+          <tr>
+            <th>Entidad</th>
+            <th>Proveedor</th>
+            <th>Precio</th>
+            <th>Referencia</th>
+            <th>Ratio</th>
+            <th>Nivel</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${peers.map((peer) => `
+            <tr>
+              <td>${text(peer.entidad)}</td>
+              <td>${text(peer.proveedor)}</td>
+              <td>${money(peer.precio_promedio_ent)}</td>
+              <td>${money(peer.precio_mediano)}</td>
+              <td>${decimal(peer.ratio_observado || 0, 2)}x</td>
+              <td>${badge(peer.nivel_bayes)}</td>
+            </tr>
+          `).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function priceBars(row) {
+  const observed = Number(row.precio_promedio_ent || 0);
+  const ref = Number(row.precio_mediano || 0);
+  const max = Math.max(observed, ref, 1);
+  const observedW = Math.max(4, (observed / max) * 260);
+  const refW = Math.max(4, (ref / max) * 260);
+  return `
+    <svg class="detail-svg" viewBox="0 0 360 150" role="img" aria-label="Comparacion de precio observado y referencia">
+      <text x="0" y="18">Precio observado</text>
+      <rect x="0" y="28" width="${observedW}" height="24" rx="4" fill="#0B5D3B"></rect>
+      <text x="${Math.min(270, observedW + 8)}" y="46">${money(observed)}</text>
+      <text x="0" y="82">Referencia</text>
+      <rect x="0" y="92" width="${refW}" height="24" rx="4" fill="#C8A24A"></rect>
+      <text x="${Math.min(270, refW + 8)}" y="110">${money(ref)}</text>
+      <text x="0" y="142">Ratio observado: ${decimal(row.ratio_observado || 0, 2)}x</text>
+    </svg>`;
+}
+
+function posteriorFigure(row) {
+  const prob = Math.max(0, Math.min(1, Number(row.prob_alta || 0)));
+  const score = Math.max(0, Math.min(100, Number(row.score_bayes || 0)));
+  const probW = 300 * prob;
+  const scoreW = 3 * score;
+  return `
+    <svg class="detail-svg" viewBox="0 0 360 150" role="img" aria-label="Probabilidad posterior y score">
+      <text x="0" y="18">Probabilidad posterior &gt; 1,5x</text>
+      <rect x="0" y="28" width="300" height="18" rx="9" fill="#edf2ef"></rect>
+      <rect x="0" y="28" width="${probW}" height="18" rx="9" fill="#B42318"></rect>
+      <text x="310" y="43">${pct(prob)}</text>
+      <text x="0" y="78">Score Bayes</text>
+      <rect x="0" y="88" width="300" height="18" rx="9" fill="#edf2ef"></rect>
+      <rect x="0" y="88" width="${scoreW}" height="18" rx="9" fill="#1D4ED8"></rect>
+      <text x="310" y="103">${decimal(score, 1)}</text>
+      <text x="0" y="138">Intervalo posterior ratio: ${decimal(row.intervalo_bajo || 0, 2)}x a ${decimal(row.intervalo_alto || 0, 2)}x</text>
+    </svg>`;
+}
+
+function peerFigure(row) {
+  const peers = [row].concat(detailPeers(row)).slice(0, 8);
+  const max = Math.max(...peers.map((peer) => Number(peer.precio_promedio_ent || 0)), 1);
+  return `
+    <div class="peer-bars">
+      ${peers.map((peer) => {
+        const width = Math.max(3, (Number(peer.precio_promedio_ent || 0) / max) * 100);
+        return `
+          <div class="peer-bar-row">
+            <span>${text(peer.entidad).slice(0, 42)}</span>
+            <div class="peer-track"><div style="width:${width}%"></div></div>
+            <strong>${money(peer.precio_promedio_ent)}</strong>
+          </div>`;
+      }).join("")}
+    </div>`;
+}
+
 function populateFilters() {
   const priceRows = state.price || [];
   const allRows = priceRows.concat(state.concentration || []);
@@ -140,6 +268,8 @@ async function loadData() {
   $("appVersion").textContent = summary.app_version || CONFIG.appVersion || "0.1.0";
   populateFilters();
   render();
+  const detailHash = new URLSearchParams(window.location.search).get("detail");
+  if (detailHash) openDetail(detailHash, false);
 }
 
 function filteredPrice() {
@@ -222,12 +352,13 @@ function badge(level) {
 function renderCards() {
   const rows = filteredPrice().slice(0, 12);
   $("alertCards").innerHTML = rows.map((row) => `
-    <article class="alert-card">
+    <article class="alert-card clickable-card" data-detail-hash="${text(row.hash_registro)}">
       ${badge(row.nivel_bayes)}
       <h3>${text(row.articulo)}</h3>
       <p>${text(row.entidad)}</p>
       <strong>${money(row.precio_promedio_ent)}</strong>
       <p>${row.observacion_calidad ? text(row.observacion_calidad) : `Referencia: ${money(row.precio_mediano)} · Prob.: ${pct(row.prob_alta)}`}</p>
+      <button class="text-btn" type="button" data-detail-hash="${text(row.hash_registro)}">Ver detalle</button>
     </article>
   `).join("");
 }
@@ -237,7 +368,7 @@ function renderPriceTable() {
   $("filteredPriceCount").textContent = `${formatNumber(rows.length)} resultados`;
   const maxRows = CONFIG.maxTableRows || 250;
   $("priceTable").innerHTML = rows.slice(0, maxRows).map((row) => `
-    <tr>
+    <tr class="clickable-row" data-detail-hash="${text(row.hash_registro)}">
       <td>${row.rank}</td>
       <td>${badge(row.nivel_bayes)}</td>
       <td>${pct(row.prob_alta)}</td>
@@ -295,6 +426,113 @@ function renderConcentration() {
     </article>
   `).join("");
   renderNetwork();
+}
+
+function renderDetail(row) {
+  const threshold = thresholdInfo(row);
+  const peerCount = detailPeers(row).length;
+  $("detailTitle").textContent = row.articulo || "Detalle del item";
+  $("detailSubtitle").textContent = `${row.entidad || ""} · ${row.proveedor || ""}`;
+  $("detailContent").innerHTML = `
+    <div class="detail-grid">
+      <section class="detail-card">
+        ${badge(row.nivel_bayes)}
+        <h3>Por que aparece en el ranking</h3>
+        <p>${text(explainLevel(row))}</p>
+        <div class="detail-kpis">
+          ${kpi("Precio observado", money(row.precio_promedio_ent), "promedio entidad")}
+          ${kpi("Referencia", money(row.precio_mediano), row.referencia_usada || "referencia comparable")}
+          ${kpi("Ratio", `${decimal(row.ratio_observado || 0, 2)}x`, "precio / referencia")}
+          ${kpi("Probabilidad", pct(row.prob_alta), "posterior > 1,5x")}
+        </div>
+      </section>
+
+      <section class="detail-card">
+        <h3>Comparacion visual</h3>
+        ${priceBars(row)}
+      </section>
+
+      <section class="detail-card">
+        <h3>Modelo bayesiano</h3>
+        ${posteriorFigure(row)}
+      </section>
+
+      <section class="detail-card">
+        <h3>Semaforo normativo orientativo</h3>
+        <p><strong>${text(threshold.status)}</strong></p>
+        <p>Tipo usado: ${text(threshold.type)}. Umbral alto: ${decimal(threshold.upper, 2)}x. Umbral bajo: ${decimal(threshold.lower, 2)}x.</p>
+        <p>Este semaforo no reemplaza el dictamen tecnico; sirve para orientar la revision junto con la senal bayesiana.</p>
+      </section>
+    </div>
+
+    <section class="detail-card">
+      <h3>Como se calculo</h3>
+      <div class="formula-box">
+        ratio = precio observado / referencia = ${money(row.precio_promedio_ent)} / ${money(row.precio_mediano)} = ${decimal(row.ratio_observado || 0, 2)}x
+      </div>
+      <div class="table-wrap mini">
+        <table>
+          <thead>
+            <tr>
+              <th>Variable</th>
+              <th>Valor</th>
+              <th>Lectura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Codigo catalogo</td><td>${text(row.codigo_catalogo)}</td><td>Identifica la familia del bien, servicio u obra.</td></tr>
+            <tr><td>Rubro</td><td>${text(row.rubro || "")}</td><td>Primeros digitos del codigo catalogo para filtrar familias amplias.</td></tr>
+            <tr><td>Unidad</td><td>${text(row.unidad)}</td><td>La referencia se calcula evitando mezclar unidades distintas.</td></tr>
+            <tr><td>Compras de la entidad</td><td>${formatNumber(row.cantidad_compras)}</td><td>Base observada para la entidad seleccionada.</td></tr>
+            <tr><td>Entidades comparables</td><td>${formatNumber(row.total_entidades)}</td><td>Cantidad de entidades consideradas por la referencia comparable.</td></tr>
+            <tr><td>Transacciones comparables</td><td>${formatNumber(row.total_transacciones)}</td><td>Volumen de evidencia publicado para esta referencia.</td></tr>
+            <tr><td>Anios observados</td><td>${text(formatList(row.anios_observados))}</td><td>Fechas reales detectadas en el detalle de items.</td></tr>
+            <tr><td>Meses observados</td><td>${text(formatList(row.meses_observados, monthName))}</td><td>Meses detectados para este item-entidad-unidad.</td></tr>
+            <tr><td>Rango de fechas</td><td>${text(row.fecha_min_observada || "Sin dato")} a ${text(row.fecha_max_observada || "Sin dato")}</td><td>Cobertura temporal usada para filtros.</td></tr>
+            <tr><td>Mediana original</td><td>${money(row.precio_mediano_original)}</td><td>Referencia anterior amplia; se conserva para auditoria.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="detail-card">
+      <h3>Pares comparables publicados</h3>
+      <p>Se muestran hasta 12 filas del ranking publicado con el mismo codigo de catalogo y unidad. No sustituye la reconstruccion completa desde CSV crudos.</p>
+      ${peerFigure(row)}
+      ${detailPeerRows(row)}
+      <p class="muted-note">Pares publicados encontrados: ${formatNumber(peerCount)}.</p>
+    </section>
+
+    <section class="detail-card">
+      <h3>Lectura responsable</h3>
+      <p>La clasificacion prioriza revision humana. Antes de concluir sobreprecio, corresponde verificar pliego, especificaciones tecnicas, presentacion, calidad, marca/modelo, cantidades, forma de pago, plazo, servicios conexos e historial documental.</p>
+      <p>${row.observacion_calidad ? text(row.observacion_calidad) : "No hay nota automatica de calidad para esta fila, pero la referencia sigue siendo estadistica y debe contrastarse documentalmente."}</p>
+    </section>`;
+}
+
+function updateDetailUrl(hash) {
+  if (!window.history?.pushState) return;
+  const url = new URL(window.location.href);
+  if (hash) url.searchParams.set("detail", hash);
+  else url.searchParams.delete("detail");
+  window.history.pushState({}, "", url.toString());
+}
+
+function openDetail(hash, pushUrl = true) {
+  const row = state.price.find((item) => item.hash_registro === hash);
+  if (!row) return;
+  state.previousTab = state.tab === "detalle" ? state.previousTab : state.tab;
+  state.selectedDetail = row;
+  renderDetail(row);
+  setTab("detalle");
+  if (pushUrl) updateDetailUrl(hash);
+  $("tab-detalle").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function closeDetail() {
+  state.selectedDetail = null;
+  updateDetailUrl("");
+  setTab(state.previousTab || "resumen");
 }
 
 function renderDataQuality() {
@@ -378,6 +616,24 @@ function bindEvents() {
     });
   }
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
+  $("alertCards").addEventListener("click", (event) => {
+    const target = event.target.closest("[data-detail-hash]");
+    if (target) openDetail(target.dataset.detailHash);
+  });
+  $("priceTable").addEventListener("click", (event) => {
+    const target = event.target.closest("[data-detail-hash]");
+    if (target) openDetail(target.dataset.detailHash);
+  });
+  $("closeDetail").addEventListener("click", closeDetail);
+  $("downloadDetail").addEventListener("click", () => {
+    if (!state.selectedDetail) return;
+    download(`licitabayes_detalle_${state.selectedDetail.hash_registro}.json`, JSON.stringify({
+      item: state.selectedDetail,
+      pares_publicados: detailPeers(state.selectedDetail),
+      semaforo_normativo: thresholdInfo(state.selectedDetail),
+      explicacion: explainLevel(state.selectedDetail)
+    }, null, 2), "application/json");
+  });
   $("searchBox").addEventListener("input", (event) => {
     state.search = event.target.value;
     rerenderFilteredViews();
