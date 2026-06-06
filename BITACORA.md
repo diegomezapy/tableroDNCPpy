@@ -159,6 +159,22 @@
 - Verificacion GAS: `GET /exec` del deployment v0.1.7 respondio `403 Prohibido`.
 - Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
 
+### Metodologia ampliada con formulas y bibliografia
+
+- Problema reportado: la vista `Metodologia` estaba demasiado pobre y no explicaba autores, formulas ni fundamentos.
+- Correccion: se reemplazo la vista metodologica por un manual tecnico dentro de la app.
+- Contenido agregado: fundamento bayesiano, formula de Bayes, referencia comparable, ratio observado, escala logaritmica, contraccion empirical Bayes, probabilidad posterior, intervalo posterior, concentracion entidad-proveedor, niveles de senal y limitaciones.
+- Bibliografia agregada en UI: Bayes (1763), Efron y Morris (1972/1973), Gelman et al. `Bayesian Data Analysis`, Robert `The Bayesian Choice` y referencia Dirichlet-multinomial.
+- Mejora tecnica: se agrego deep link por `?tab=metodologia` para compartir/probar la vista.
+- Version actualizada: `APP_VERSION=0.1.8`; cache del service worker `licitabayes-dncp-v0-1-8`.
+- Regeneracion ejecutada: `py -3 scripts/build_static_data.py`.
+- Validacion ejecutada: `node --check assets/app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion local Playwright: capturas desktop y movil de `?tab=metodologia` cargaron referencias y formulas sin solapamientos.
+- Deployment Apps Script v0.1.8 creado: `AKfycbwVWTZi6vCVBJMDpGbJb4DShxxH2GrsB0MFONtRQgal7AMrZscaiXC_IpTRm9m9QI648A`.
+- Verificacion GAS: `GET /exec` del deployment v0.1.8 respondio `403 Prohibido`.
+- Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
+
 ### Boton obligatorio Actualizar version
 
 - Problema reportado: la app no tenia boton visible para actualizar la version.

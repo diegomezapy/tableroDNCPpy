@@ -16,6 +16,7 @@ Priorizar revision humana sobre:
 - registro minimo obligatorio de visita antes de entrar al panel.
 - vista de respaldo visible solo para admin `dmeza.py@gmail.com`.
 - explicacion visual del motor Bayes con flujo, medidores, curva posterior y fichas auditables.
+- metodologia ampliada con formulas, limitaciones y referencias bibliograficas.
 
 Las alertas son senales estadisticas exploratorias. No constituyen denuncia, prueba de irregularidad ni dictamen legal.
 
@@ -67,6 +68,12 @@ El modelo contrae resultados hacia ratio 1 cuando hay poca evidencia y calcula p
 ### Concentracion
 
 Suavizado tipo Dirichlet sobre participacion entidad-proveedor, combinando monto, cantidad de contratos y cantidad de proveedores por entidad.
+
+## Metodologia ampliada
+
+La pestana `Metodologia` documenta el fundamento bayesiano, referencia comparable, ratio observado, contraccion empirical Bayes, probabilidad posterior, intervalo posterior, concentracion entidad-proveedor, niveles de senal, limitaciones y bibliografia.
+
+Referencias conceptuales incluidas en la app: Bayes (1763), Efron y Morris (1972/1973), Gelman et al. `Bayesian Data Analysis`, Robert `The Bayesian Choice` y material sobre Dirichlet-multinomial para proporciones suavizadas.
 
 ## Google Sheets
 
