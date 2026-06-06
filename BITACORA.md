@@ -233,5 +233,5 @@
 - Validacion Playwright local: al filtrar por `Ministerio de Salud Publica y Bienestar Social (MSPBS)`, `Resumen` paso de `5.000` alertas a `96`; top entidades paso a `1`; version visible `0.1.11`.
 - Deployment Apps Script v0.1.11 creado: `AKfycbykfPCyABmMx63lXkaBT4v3kUvKltQ33m8Pfc5eh93K7Ev5shyQpJL2C4CRH9GOkVOI2g`.
 - Verificacion GAS: `GET /exec` del deployment v0.1.11 respondio `403 Prohibido`.
-- Commit main: pendiente de publicar.
-- Commit gh-pages: pendiente de publicar.
+- Commit main: `fd0d040`.
+- Commit gh-pages: `6147258`.
