@@ -25,7 +25,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -209,14 +210,15 @@ p {
 label,
 .filter-label {
   display: block;
-  margin: 12px 0 8px;
+  margin: 9px 0 6px;
   color: rgba(255,255,255,.76);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
 }
 
-input {
+input,
+select {
   width: 100%;
   min-height: 42px;
   border-radius: 8px;
@@ -227,6 +229,17 @@ input {
 }
 
 input::placeholder { color: rgba(255,255,255,.48); }
+
+select option {
+  color: var(--ink);
+  background: var(--white);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
 
 .chip {
   min-height: 36px;

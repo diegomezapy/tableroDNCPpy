@@ -74,3 +74,11 @@
 - Ideas incorporables: minimo tres precios documentados, combinacion de dos o mas fuentes, caracteristicas similares, separacion de servicios conexos, ajuste por IPC, ajuste por plazo/forma de pago y umbrales normativos de revision.
 - Documento agregado: `docs/referencias_normativas_precios.md`.
 - Propuesta tecnica: crear `cache/referencias_precio.parquet` y `data/reference_quality.json` con confianza de referencia, fuentes, dispersion, reglas de comparabilidad y semaforo normativo.
+
+### Filtros avanzados del panel
+
+- Problema reportado: el panel de filtros necesitaba filtros por entidad/institucion, anio, mes, articulo/producto y rubro.
+- Correccion: se agregaron filtros laterales por entidad o institucion, articulo/producto, rubro/codigo catalogo, anio, mes, proveedor, unidad y nivel de senal.
+- Correccion tecnica: `price_alerts.json` ahora incluye `anios_observados`, `meses_observados`, `fecha_min_observada`, `fecha_max_observada` y `rubro`.
+- Criterio: anio y mes se aplican al ranking de precios usando fechas observadas del detalle de items; concentracion aplica entidad, proveedor, nivel y texto, porque no tiene periodo confiable en el cache actual.
+- Version actualizada: `APP_VERSION=0.1.3`, `DATA_VERSION=dncp-cache-2025-ref-v3`.

@@ -11,6 +11,7 @@ Priorizar revision humana sobre:
 - precios institucionales atipicos por item de catalogo;
 - concentracion entidad-proveedor;
 - calidad y cobertura de datos usados por el modelo.
+- exploracion filtrable por entidad, anio, mes observado, articulo, rubro, proveedor, unidad y nivel de senal.
 
 Las alertas son senales estadisticas exploratorias. No constituyen denuncia, prueba de irregularidad ni dictamen legal.
 

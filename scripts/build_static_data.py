@@ -25,8 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE_DIR = ROOT / "cache"
 DATA_DIR = ROOT / "data"
 
-APP_VERSION = "0.1.2"
-DATA_VERSION = "dncp-cache-2025-ref-v2"
+APP_VERSION = "0.1.3"
+DATA_VERSION = "dncp-cache-2025-ref-v3"
 PAGES_URL = "https://diegomezapy.github.io/tableroDNCPpy/"
 SOURCE_URL = "https://contrataciones.gov.py/datos"
 
@@ -58,6 +58,10 @@ def clean_text(value: Any, max_len: int = 180) -> str:
     while "  " in text:
         text = text.replace("  ", " ")
     return text[:max_len]
+
+
+def norm_key(value: Any) -> str:
+    return clean_text(value, 500).casefold()
 
 
 def record_hash(*parts: Any) -> str:
@@ -122,10 +126,41 @@ def add_comparable_reference(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict], dict]:
+def build_period_index(items: pd.DataFrame) -> dict[tuple[str, str, str], dict]:
+    if items.empty or not {"clasificacion", "entidad", "unidad", "fecha_adjudicacion"}.issubset(items.columns):
+        return {}
+
+    df = items[["clasificacion", "entidad", "unidad", "fecha_adjudicacion"]].copy()
+    df["_fecha"] = pd.to_datetime(df["fecha_adjudicacion"], errors="coerce", utc=True)
+    now = pd.Timestamp.now(tz="UTC")
+    df = df[df["_fecha"].notna() & (df["_fecha"] <= now)].copy()
+    if df.empty:
+        return {}
+
+    df["_anio"] = df["_fecha"].dt.year.astype(int)
+    df["_mes"] = df["_fecha"].dt.month.astype(int)
+    df["_key_articulo"] = df["clasificacion"].map(norm_key)
+    df["_key_entidad"] = df["entidad"].map(norm_key)
+    df["_key_unidad"] = df["unidad"].map(norm_key)
+
+    out: dict[tuple[str, str, str], dict] = {}
+    for key, grp in df.groupby(["_key_articulo", "_key_entidad", "_key_unidad"], sort=False):
+        years = sorted(int(v) for v in grp["_anio"].dropna().unique())
+        months = sorted(int(v) for v in grp["_mes"].dropna().unique())
+        out[key] = {
+            "anios_observados": years,
+            "meses_observados": months,
+            "fecha_min": grp["_fecha"].min().date().isoformat(),
+            "fecha_max": grp["_fecha"].max().date().isoformat(),
+        }
+    return out
+
+
+def build_price_alerts(comp: pd.DataFrame, items: pd.DataFrame | None = None, limit: int = 5000) -> tuple[list[dict], dict]:
     if comp.empty:
         return [], {"rows": 0, "usable_rows": 0}
 
+    period_index = build_period_index(items if items is not None else pd.DataFrame())
     df = add_comparable_reference(comp)
     for col in [
         "precio_promedio_ent",
@@ -207,6 +242,10 @@ def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict
         entidad = clean_text(row.get("entidad", ""))
         proveedor = clean_text(row.get("proveedor_mas_frecuente", ""))
         articulo = clean_text(row.get("nombre_catalogo", ""))
+        unidad = clean_text(row.get("unidad", ""), 40)
+        period = period_index.get((norm_key(articulo), norm_key(entidad), norm_key(unidad)), {})
+        observed_years = period.get("anios_observados") or [int(finite(row.get("anio", 0)))]
+        observed_months = period.get("meses_observados") or []
 
         records.append(
             {
@@ -216,7 +255,7 @@ def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict
                 "score_bayes": round(score, 2),
                 "codigo_catalogo": codigo,
                 "articulo": articulo,
-                "unidad": clean_text(row.get("unidad", ""), 40),
+                "unidad": unidad,
                 "entidad": entidad,
                 "proveedor": proveedor,
                 "ruc": clean_text(row.get("ruc_proveedor", "")),
@@ -230,6 +269,11 @@ def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict
                 "total_entidades": int(total_ent),
                 "total_transacciones": int(total_tx),
                 "anio": int(finite(row.get("anio", 0))),
+                "anios_observados": observed_years,
+                "meses_observados": observed_months,
+                "fecha_min_observada": period.get("fecha_min", ""),
+                "fecha_max_observada": period.get("fecha_max", ""),
+                "rubro": codigo[:4],
                 "referencia_usada": clean_text(row.get("_referencia_usada", ""), 80),
                 "observacion_calidad": quality_note,
                 "hash_registro": record_hash(codigo, entidad, proveedor, articulo),
@@ -381,7 +425,7 @@ def main() -> None:
     items = parquet("adjudicaciones/items_detalle.parquet")
     licit = parquet("convocatorias/licitaciones_full.parquet")
 
-    price_alerts, price_stats = build_price_alerts(comp)
+    price_alerts, price_stats = build_price_alerts(comp, items)
     concentration, concentration_stats = build_concentration(red)
     series = build_series()
     quality = quality_report(items, licit)
