@@ -54,10 +54,10 @@ data/series.json
 Empirical Bayes log-normal sobre el ratio:
 
 ```text
-precio promedio entidad / mediana interna del item
+precio promedio entidad / referencia comparable por item y unidad
 ```
 
-El modelo contrae resultados hacia ratio 1 cuando hay poca evidencia y calcula probabilidad posterior de precio alto.
+El modelo contrae resultados hacia ratio 1 cuando hay poca evidencia y calcula probabilidad posterior de precio alto. Los casos con unidad sin pares suficientes o ratios extremos se separan como `Verificar dato` para evitar tratar posibles errores de catalogacion como alertas bayesianas.
 
 ### Concentracion
 

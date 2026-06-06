@@ -9,8 +9,10 @@ LicitaBayes usa modelos bayesianos empiricos para ordenar casos que merecen revi
 Para cada item de catalogo se calcula:
 
 ```text
-ratio = precio promedio pagado por una entidad / mediana interna del item
+ratio = precio promedio pagado por una entidad / referencia comparable del item
 ```
+
+La referencia comparable se calcula como mediana entre entidades para el mismo codigo de catalogo y la misma unidad de medida cuando existen pares suficientes. Si la unidad no tiene pares suficientes, o si el ratio es extremo, el caso pasa a `Verificar dato` y no se presenta como probabilidad bayesiana accionable.
 
 Ese ratio se modela en escala logaritmica. El prior asume que, antes de ver evidencia especifica, el ratio esperado esta cerca de 1.
 
@@ -44,7 +46,7 @@ La app combina:
 
 ## Limitaciones
 
-- La mediana interna del Estado no equivale a precio de mercado privado.
+- La referencia interna del Estado no equivale a precio de mercado privado.
 - Un mismo item puede tener calidades, presentaciones o unidades distintas.
 - Los outliers extremos pueden ser errores de catalogacion.
 - Hay fechas futuras y valores nulos/cero que deben auditarse.

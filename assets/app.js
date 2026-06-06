@@ -27,7 +27,9 @@ function formatNumber(value, decimals = 0) {
 }
 
 function pct(value) {
-  return `${formatNumber(Number(value || 0) * 100, 0)}%`;
+  const n = Number(value || 0);
+  if (n >= 0.9995) return ">99,9%";
+  return `${formatNumber(n * 100, 1)}%`;
 }
 
 function decimal(value, decimals = 1) {
@@ -151,7 +153,7 @@ function renderCards() {
       <h3>${text(row.articulo)}</h3>
       <p>${text(row.entidad)}</p>
       <strong>${money(row.precio_promedio_ent)}</strong>
-      <p>Mediana: ${money(row.precio_mediano)} · Prob.: ${pct(row.prob_alta)}</p>
+      <p>${row.observacion_calidad ? text(row.observacion_calidad) : `Referencia: ${money(row.precio_mediano)} · Prob.: ${pct(row.prob_alta)}`}</p>
     </article>
   `).join("");
 }
@@ -172,6 +174,7 @@ function renderPriceTable() {
       <td>${money(row.precio_promedio_ent)}</td>
       <td>${money(row.precio_mediano)}</td>
       <td>${decimal(row.ratio_observado || 0, 2)}x</td>
+      <td>${text(row.observacion_calidad || row.referencia_usada || "")}</td>
     </tr>
   `).join("");
 }

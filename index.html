@@ -102,7 +102,7 @@
           <div class="panel-head">
             <div>
               <h2>Ranking bayesiano de precios atipicos</h2>
-              <p>Probabilidad posterior de que el precio institucional supere 1,5 veces la referencia interna del item.</p>
+              <p>Probabilidad posterior de que el precio institucional supere 1,5 veces una referencia comparable por item y unidad.</p>
             </div>
             <span id="filteredPriceCount"></span>
           </div>
@@ -118,8 +118,9 @@
                   <th>Entidad</th>
                   <th>Proveedor</th>
                   <th>Precio</th>
-                  <th>Mediana</th>
+                  <th>Referencia</th>
                   <th>Ratio</th>
+                  <th>Nota</th>
                 </tr>
               </thead>
               <tbody id="priceTable"></tbody>
@@ -175,7 +176,7 @@
       <section id="tab-metodologia" class="tab-panel">
         <article class="panel prose">
           <h2>Metodologia del MVP</h2>
-          <p><strong>Modelo de precios:</strong> empirical Bayes log-normal sobre el ratio entre precio promedio pagado por una entidad y mediana interna del mismo item. Se aplica contraccion hacia ratio 1 cuando hay poca evidencia.</p>
+          <p><strong>Modelo de precios:</strong> empirical Bayes log-normal sobre el ratio entre precio promedio pagado por una entidad y una referencia comparable por codigo y unidad. Se aplica contraccion hacia ratio 1 cuando hay poca evidencia.</p>
           <p><strong>Modelo de concentracion:</strong> suavizado bayesiano sobre participacion entidad-proveedor, combinando monto, cantidad de contratos y cantidad de proveedores comparables por entidad.</p>
           <p><strong>Interpretacion:</strong> el resultado es una prioridad de revision. No prueba intencionalidad ni irregularidad; orienta donde conviene mirar primero.</p>
         </article>

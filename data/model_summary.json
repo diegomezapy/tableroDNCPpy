@@ -1,8 +1,8 @@
 {
-  "run_id": "52e0fbf919eaec61",
-  "generated_at": "2026-06-06T15:25:15.104889+00:00",
-  "app_version": "0.1.1",
-  "data_version": "dncp-cache-2025",
+  "run_id": "7d16e4a00898870f",
+  "generated_at": "2026-06-06T15:56:09.095132+00:00",
+  "app_version": "0.1.2",
+  "data_version": "dncp-cache-2025-ref-v2",
   "source_url": "https://contrataciones.gov.py/datos",
   "github_pages_url": "https://diegomezapy.github.io/tableroDNCPpy/",
   "models": {
@@ -20,11 +20,11 @@
     "usable_rows": 52177,
     "published_rows": 5000,
     "levels": {
-      "Normal": 29721,
-      "Moderado": 10641,
-      "Critico": 6831,
-      "Alto": 4688,
-      "Verificar dato": 296
+      "Normal": 31995,
+      "Moderado": 9899,
+      "Critico": 4603,
+      "Alto": 3610,
+      "Verificar dato": 2070
     }
   },
   "concentration_stats": {

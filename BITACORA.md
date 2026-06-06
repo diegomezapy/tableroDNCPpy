@@ -51,3 +51,15 @@
 - Se creo bitacora central del proyecto en `I:\Mi unidad\MANUAL_MAESTRO_FORMATOS_FUNCIONES_APPWEB\BITACORAS_PROYECTOS\BITACORA_LICITABAYES_DNCP_TABLERODNCPPY.md`.
 - Se creo indice central en `I:\Mi unidad\MANUAL_MAESTRO_FORMATOS_FUNCIONES_APPWEB\BITACORAS_PROYECTOS\INDICE_BITACORAS.md`.
 - Regla operativa nueva: desde este hito, cada proyecto debe mantener una bitacora local y una copia central claramente identificada en la carpeta maestra.
+
+### Correccion de referencia estadistica de precios
+
+- Problema reportado: los primeros resultados mostraban referencias evidentemente sospechosas, por ejemplo rastra aradora comparada contra una mediana de repuestos de G. 211.893.
+- Diagnostico: el cache `comparacion_precios.parquet` usaba una mediana transaccional por catalogo que podia mezclar maquinas completas, repuestos, presentaciones y unidades.
+- Diagnostico adicional: `items_detalle.parquet` tiene `anio = 2025` para todas las filas, pero las fechas reales incluyen varios anios y algunas fechas futuras; esto queda como senal de calidad a auditar.
+- Correccion: `scripts/build_static_data.py` ahora usa una referencia comparable por codigo y unidad, calculada como mediana entre entidades.
+- Correccion: si una unidad no tiene pares suficientes, o si el ratio sigue siendo extremo, el caso queda como `Verificar dato` con score y probabilidad bayesiana no accionables.
+- Correccion visual: la app muestra `Referencia` en lugar de `Mediana` y evita mostrar `100%`, usando `>99,9%`.
+- Version actualizada: `APP_VERSION=0.1.2`, `DATA_VERSION=dncp-cache-2025-ref-v2`.
+- Validacion: `Rastra aradora`, `Papel de seguridad` y `Municipalidad de Eusebio Ayala / Mantenimiento de camino terraplenado` dejaron de aparecer en el ranking publicado como alertas bayesianas principales.
+- Pendiente: reconstruir caches avanzados desde CSV crudos y agregar clustering o reglas semanticas de descripcion para mejorar comparabilidad fina.

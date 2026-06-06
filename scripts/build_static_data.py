@@ -25,8 +25,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE_DIR = ROOT / "cache"
 DATA_DIR = ROOT / "data"
 
-APP_VERSION = "0.1.1"
-DATA_VERSION = "dncp-cache-2025"
+APP_VERSION = "0.1.2"
+DATA_VERSION = "dncp-cache-2025-ref-v2"
 PAGES_URL = "https://diegomezapy.github.io/tableroDNCPpy/"
 SOURCE_URL = "https://contrataciones.gov.py/datos"
 
@@ -88,25 +88,68 @@ def robust_group_scale(comp: pd.DataFrame) -> pd.Series:
     return ratios.groupby("codigo_catalogo")["_log_ratio"].apply(mad)
 
 
+def add_comparable_reference(df: pd.DataFrame) -> pd.DataFrame:
+    """Calcula una referencia por codigo y unidad con mediana entre entidades."""
+    out = df.copy()
+    out["precio_mediano_ent"] = pd.to_numeric(out.get("precio_mediano_ent"), errors="coerce")
+    out["cantidad_compras"] = pd.to_numeric(out.get("cantidad_compras"), errors="coerce").fillna(0)
+
+    unit_keys = ["codigo_catalogo", "unidad"]
+    code_keys = ["codigo_catalogo"]
+    out["_ref_unit"] = out.groupby(unit_keys)["precio_mediano_ent"].transform("median")
+    out["_ref_unit_entities"] = out.groupby(unit_keys)["entidad"].transform("nunique")
+    out["_ref_unit_tx"] = out.groupby(unit_keys)["cantidad_compras"].transform("sum")
+    out["_ref_code"] = out.groupby(code_keys)["precio_mediano_ent"].transform("median")
+    out["_ref_code_entities"] = out.groupby(code_keys)["entidad"].transform("nunique")
+    out["_ref_code_tx"] = out.groupby(code_keys)["cantidad_compras"].transform("sum")
+
+    use_unit = (out["_ref_unit_entities"].fillna(0) >= 2) & (out["_ref_unit"].fillna(0) > 0)
+    out["_precio_referencia"] = out["_ref_unit"].where(use_unit, out["_ref_code"])
+    out["_ref_entities"] = out["_ref_unit_entities"].where(use_unit, out["_ref_code_entities"])
+    out["_ref_tx"] = out["_ref_unit_tx"].where(use_unit, out["_ref_code_tx"])
+    out["_referencia_usada"] = use_unit.map(
+        lambda value: "mediana por codigo y unidad" if value else "referencia amplia por codigo"
+    )
+
+    fallback = pd.to_numeric(out.get("precio_mediano"), errors="coerce")
+    out["_precio_referencia"] = out["_precio_referencia"].where(out["_precio_referencia"].fillna(0) > 0, fallback)
+    out["_ref_entities"] = out["_ref_entities"].where(
+        out["_ref_entities"].fillna(0) > 0, pd.to_numeric(out.get("total_entidades"), errors="coerce")
+    )
+    out["_ref_tx"] = out["_ref_tx"].where(
+        out["_ref_tx"].fillna(0) > 0, pd.to_numeric(out.get("total_transacciones"), errors="coerce")
+    )
+    return out
+
+
 def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict], dict]:
     if comp.empty:
         return [], {"rows": 0, "usable_rows": 0}
 
-    df = comp.copy()
-    for col in ["precio_promedio_ent", "precio_mediano", "cantidad_compras", "total_entidades", "total_transacciones"]:
+    df = add_comparable_reference(comp)
+    for col in [
+        "precio_promedio_ent",
+        "precio_mediano",
+        "_precio_referencia",
+        "cantidad_compras",
+        "total_entidades",
+        "total_transacciones",
+        "_ref_entities",
+        "_ref_tx",
+    ]:
         df[col] = pd.to_numeric(df.get(col), errors="coerce")
 
     usable = (
         (df["precio_promedio_ent"] > 0)
-        & (df["precio_mediano"] > 0)
+        & (df["_precio_referencia"] > 0)
         & (df["cantidad_compras"].fillna(0) > 0)
-        & (df["total_entidades"].fillna(0) >= 2)
+        & (df["_ref_entities"].fillna(0) >= 2)
     )
     df = df[usable].copy()
     if df.empty:
         return [], {"rows": len(comp), "usable_rows": 0}
 
-    df["_ratio"] = df["precio_promedio_ent"] / df["precio_mediano"]
+    df["_ratio"] = df["precio_promedio_ent"] / df["_precio_referencia"]
     df["_log_ratio"] = df["_ratio"].clip(lower=0.001, upper=1000).map(math.log)
     scale = robust_group_scale(df)
     df["_scale"] = df["codigo_catalogo"].map(scale).fillna(0.55).clip(0.25, 1.75)
@@ -119,11 +162,13 @@ def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict
 
     for row in df.to_dict(orient="records"):
         n = max(1.0, finite(row.get("cantidad_compras", 1)))
-        total_ent = max(1.0, finite(row.get("total_entidades", 1)))
-        total_tx = max(1.0, finite(row.get("total_transacciones", 1)))
+        total_ent = max(1.0, finite(row.get("_ref_entities", row.get("total_entidades", 1))))
+        total_tx = max(1.0, finite(row.get("_ref_tx", row.get("total_transacciones", 1))))
         log_ratio = finite(row.get("_log_ratio", 0.0))
         ratio_value = finite(row.get("_ratio", 0.0))
         scale_value = finite(row.get("_scale", 0.55), 0.55)
+        unit_peers = finite(row.get("_ref_unit_entities", 0))
+        quality_note = ""
 
         obs_var = (scale_value**2 / min(n, 25.0)) + 0.035
         post_var = 1.0 / ((1.0 / prior_var) + (1.0 / obs_var))
@@ -135,8 +180,18 @@ def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict
         confidence = min(1.0, math.sqrt(total_tx / 12.0)) * min(1.0, math.sqrt(total_ent / 4.0))
         score = max(0.0, min(100.0, 100.0 * (0.72 * prob_15 + 0.28 * prob_12) * confidence))
 
-        if ratio_value >= 50:
+        if unit_peers < 2:
             level = "Verificar dato"
+            score = 0.0
+            prob_15 = 0.0
+            prob_12 = 0.0
+            quality_note = "Referencia no comparable: la unidad no tiene pares suficientes."
+        elif ratio_value >= 15:
+            level = "Verificar dato"
+            score = 0.0
+            prob_15 = 0.0
+            prob_12 = 0.0
+            quality_note = "Referencia no comparable: posible mezcla de unidad, presentacion, repuesto o clasificacion."
         elif prob_15 >= 0.85 or score >= 75:
             level = "Critico"
         elif prob_15 >= 0.60 or score >= 50:
@@ -166,7 +221,8 @@ def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict
                 "proveedor": proveedor,
                 "ruc": clean_text(row.get("ruc_proveedor", "")),
                 "precio_promedio_ent": round(finite(row.get("precio_promedio_ent", 0)), 2),
-                "precio_mediano": round(finite(row.get("precio_mediano", 0)), 2),
+                "precio_mediano": round(finite(row.get("_precio_referencia", 0)), 2),
+                "precio_mediano_original": round(finite(row.get("precio_mediano", 0)), 2),
                 "ratio_observado": round(ratio_value, 3),
                 "intervalo_bajo": round(math.exp(post_mean - 1.96 * post_sd), 3),
                 "intervalo_alto": round(math.exp(post_mean + 1.96 * post_sd), 3),
@@ -174,11 +230,17 @@ def build_price_alerts(comp: pd.DataFrame, limit: int = 5000) -> tuple[list[dict
                 "total_entidades": int(total_ent),
                 "total_transacciones": int(total_tx),
                 "anio": int(finite(row.get("anio", 0))),
+                "referencia_usada": clean_text(row.get("_referencia_usada", ""), 80),
+                "observacion_calidad": quality_note,
                 "hash_registro": record_hash(codigo, entidad, proveedor, articulo),
             }
         )
 
-    records.sort(key=lambda item: (item["score_bayes"], item["prob_alta"], item["ratio_observado"]), reverse=True)
+    def sort_key(item: dict) -> tuple:
+        quality_penalty = 1 if item["nivel_bayes"] == "Verificar dato" else 0
+        return (quality_penalty, -item["score_bayes"], -item["prob_alta"], -item["ratio_observado"])
+
+    records.sort(key=sort_key)
     for idx, item in enumerate(records, start=1):
         item["rank"] = idx
 
