@@ -13,15 +13,32 @@ const state = {
 const $ = (id) => document.getElementById(id);
 
 function money(value) {
+  return `G. ${formatNumber(value, 0)}`;
+}
+
+function formatNumber(value, decimals = 0) {
   const n = Number(value || 0);
-  if (n >= 1e12) return `G. ${(n / 1e12).toFixed(2)} B`;
-  if (n >= 1e9) return `G. ${(n / 1e9).toFixed(2)} MM`;
-  if (n >= 1e6) return `G. ${(n / 1e6).toFixed(1)} M`;
-  return `G. ${Math.round(n).toLocaleString("es-PY")}`;
+  if (!Number.isFinite(n)) return decimals > 0 ? `0,${"0".repeat(decimals)}` : "0";
+  const fixed = Math.abs(n).toFixed(decimals);
+  const [whole, fraction] = fixed.split(".");
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const sign = n < 0 ? "-" : "";
+  return `${sign}${grouped}${decimals > 0 ? `,${fraction}` : ""}`;
 }
 
 function pct(value) {
-  return `${Math.round(Number(value || 0) * 100)}%`;
+  return `${formatNumber(Number(value || 0) * 100, 0)}%`;
+}
+
+function decimal(value, decimals = 1) {
+  return formatNumber(value, decimals);
+}
+
+function displayValue(value) {
+  if (typeof value === "number") {
+    return Number.isInteger(value) ? formatNumber(value) : decimal(value, 2);
+  }
+  return value;
 }
 
 function text(value) {
@@ -89,10 +106,10 @@ function kpi(label, value, note) {
 function renderKpis() {
   const c = state.summary?.counts || {};
   $("kpiGrid").innerHTML = [
-    kpi("Licitaciones", Number(c.licitaciones || 0).toLocaleString("es-PY"), "convocatorias publicadas"),
-    kpi("Items", Number(c.items || 0).toLocaleString("es-PY"), "detalle adjudicado"),
-    kpi("Alertas precio", Number(c.price_alerts || 0).toLocaleString("es-PY"), "ranking publicado"),
-    kpi("Concentracion", Number(c.concentration_alerts || 0).toLocaleString("es-PY"), "relaciones analizadas")
+    kpi("Licitaciones", formatNumber(c.licitaciones || 0), "convocatorias publicadas"),
+    kpi("Items", formatNumber(c.items || 0), "detalle adjudicado"),
+    kpi("Alertas precio", formatNumber(c.price_alerts || 0), "ranking publicado"),
+    kpi("Concentracion", formatNumber(c.concentration_alerts || 0), "relaciones analizadas")
   ].join("");
 }
 
@@ -105,7 +122,7 @@ function renderBars(target, rows, labelKey, valueKey, maxRows = 8) {
       <div class="bar-row">
         <span>${text(row[labelKey])}</span>
         <div class="bar-track"><div class="bar-fill" style="width:${Math.max(2, (value / max) * 100)}%"></div></div>
-        <strong>${value.toLocaleString("es-PY")}</strong>
+        <strong>${formatNumber(value)}</strong>
       </div>`;
   }).join("");
 }
@@ -114,7 +131,7 @@ function renderLevelChart() {
   const levels = state.summary?.price_stats?.levels || {};
   const rows = Object.entries(levels).map(([level, count]) => ({ level, count }));
   renderBars($("levelChart"), rows, "level", "count", 8);
-  $("priceCountLabel").textContent = `${state.price.length.toLocaleString("es-PY")} filas publicadas`;
+  $("priceCountLabel").textContent = `${formatNumber(state.price.length)} filas publicadas`;
 }
 
 function renderEntityChart() {
@@ -141,20 +158,20 @@ function renderCards() {
 
 function renderPriceTable() {
   const rows = filteredPrice();
-  $("filteredPriceCount").textContent = `${rows.length.toLocaleString("es-PY")} resultados`;
+  $("filteredPriceCount").textContent = `${formatNumber(rows.length)} resultados`;
   const maxRows = CONFIG.maxTableRows || 250;
   $("priceTable").innerHTML = rows.slice(0, maxRows).map((row) => `
     <tr>
       <td>${row.rank}</td>
       <td>${badge(row.nivel_bayes)}</td>
       <td>${pct(row.prob_alta)}</td>
-      <td>${Number(row.score_bayes || 0).toFixed(1)}</td>
+      <td>${decimal(row.score_bayes || 0, 1)}</td>
       <td><strong>${text(row.articulo)}</strong><br><small>${text(row.codigo_catalogo)} · ${text(row.unidad)}</small></td>
       <td>${text(row.entidad)}</td>
       <td>${text(row.proveedor)}<br><small>${text(row.ruc)}</small></td>
       <td>${money(row.precio_promedio_ent)}</td>
       <td>${money(row.precio_mediano)}</td>
-      <td>${Number(row.ratio_observado || 0).toFixed(2)}x</td>
+      <td>${decimal(row.ratio_observado || 0, 2)}x</td>
     </tr>
   `).join("");
 }
@@ -191,13 +208,13 @@ function renderNetwork() {
 
 function renderConcentration() {
   const rows = filteredConcentration();
-  $("filteredConcCount").textContent = `${rows.length.toLocaleString("es-PY")} resultados`;
+  $("filteredConcCount").textContent = `${formatNumber(rows.length)} resultados`;
   $("concentrationList").innerHTML = rows.slice(0, 80).map((row) => `
     <article class="stack-item">
       ${badge(row.nivel_concentracion)}
       <strong>${text(row.entidad)}</strong>
       <p>${text(row.proveedor)} · ${text(row.ruc)}</p>
-      <p>Score ${Number(row.score_concentracion || 0).toFixed(1)} · Monto ${money(row.monto_total)} · Share ${pct(row.share_monto)}</p>
+      <p>Score ${decimal(row.score_concentracion || 0, 1)} · Monto ${money(row.monto_total)} · Share ${pct(row.share_monto)}</p>
     </article>
   `).join("");
   renderNetwork();
@@ -206,7 +223,7 @@ function renderConcentration() {
 function renderDataQuality() {
   const q = state.summary?.quality || {};
   $("qualityList").innerHTML = Object.entries(q).map(([key, value]) => `
-    <div class="definition-row"><span>${text(key)}</span><strong>${text(value)}</strong></div>
+    <div class="definition-row"><span>${text(key)}</span><strong>${text(displayValue(value))}</strong></div>
   `).join("");
   const s = state.series || {};
   const seriesRows = [
@@ -218,7 +235,7 @@ function renderDataQuality() {
     ["Top proveedores", (s.top_proveedores || []).length]
   ];
   $("seriesList").innerHTML = seriesRows.map(([key, value]) => `
-    <div class="definition-row"><span>${text(key)}</span><strong>${value}</strong></div>
+    <div class="definition-row"><span>${text(key)}</span><strong>${formatNumber(value)}</strong></div>
   `).join("");
 }
 
@@ -251,8 +268,11 @@ function setTab(tab) {
 
 function toCsv(rows) {
   const headers = Object.keys(rows[0] || {});
-  const clean = (value) => `"${String(value ?? "").replace(/"/g, '""')}"`;
-  return [headers.join(","), ...rows.map((row) => headers.map((key) => clean(row[key])).join(","))].join("\n");
+  const clean = (value) => {
+    const normalized = typeof value === "number" ? String(value).replace(".", ",") : String(value ?? "");
+    return `"${normalized.replace(/"/g, '""')}"`;
+  };
+  return [headers.join(";"), ...rows.map((row) => headers.map((key) => clean(row[key])).join(";"))].join("\n");
 }
 
 function download(name, content, type = "text/plain") {
@@ -266,10 +286,14 @@ function download(name, content, type = "text/plain") {
 }
 
 function bindEvents() {
-  $("enterApp").addEventListener("click", () => {
-    $("accessScreen").hidden = true;
-    $("appShell").hidden = false;
-  });
+  $("appShell").hidden = false;
+  if ($("accessScreen")) $("accessScreen").hidden = true;
+  if ($("enterApp")) {
+    $("enterApp").addEventListener("click", () => {
+      if ($("accessScreen")) $("accessScreen").hidden = true;
+      $("appShell").hidden = false;
+    });
+  }
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
   $("searchBox").addEventListener("input", (event) => {
     state.search = event.target.value;
