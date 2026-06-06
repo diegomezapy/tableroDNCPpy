@@ -62,4 +62,7 @@
 - Correccion visual: la app muestra `Referencia` en lugar de `Mediana` y evita mostrar `100%`, usando `>99,9%`.
 - Version actualizada: `APP_VERSION=0.1.2`, `DATA_VERSION=dncp-cache-2025-ref-v2`.
 - Validacion: `Rastra aradora`, `Papel de seguridad` y `Municipalidad de Eusebio Ayala / Mantenimiento de camino terraplenado` dejaron de aparecer en el ranking publicado como alertas bayesianas principales.
+- Commit main: `e02f4e3`.
+- Commit gh-pages: `272cdb9`.
+- Deployment Apps Script v0.1.2 creado: `AKfycbxAO0hU6oscY3MEVrOTW1Nb5JPLq9d7X0GOVl-yB6mHLdL15F6vHnuURtmoFnqzzj00KQ`.
 - Pendiente: reconstruir caches avanzados desde CSV crudos y agregar clustering o reglas semanticas de descripcion para mejorar comparabilidad fina.
