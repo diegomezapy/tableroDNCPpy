@@ -248,5 +248,5 @@
 - Frontend actualizado para usar el endpoint del GAS asociado al libro.
 - Verificacion GAS: `GET /exec` del deployment v0.1.12 respondio `403 Prohibido`.
 - Pendiente GAS: abrir el Apps Script asociado, autorizar scopes y ajustar deployment/acceso si Google mantiene el bloqueo.
-- Commit main: pendiente de publicar.
-- Commit gh-pages: pendiente de publicar.
+- Commit main: `ea31b9b`.
+- Commit gh-pages: `921e94f`.
