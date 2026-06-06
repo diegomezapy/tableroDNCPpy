@@ -75,6 +75,8 @@ La pestana `Metodologia` documenta el fundamento bayesiano, referencia comparabl
 
 Referencias conceptuales incluidas en la app: Bayes (1763), Efron y Morris (1972/1973), Gelman et al. `Bayesian Data Analysis`, Robert `The Bayesian Choice` y material sobre Dirichlet-multinomial para proporciones suavizadas.
 
+Los filtros laterales recalculan tambien la vista `Resumen`: KPIs, distribucion de niveles, top entidades, tarjetas del motor Bayes y senales principales reflejan los filtros activos.
+
 ## Google Sheets
 
 Planilla de respaldo:

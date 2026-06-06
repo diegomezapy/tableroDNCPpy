@@ -378,18 +378,56 @@ function kpi(label, value, note) {
   return `<div class="kpi"><span>${text(label)}</span><strong>${text(value)}</strong><small>${text(note || "")}</small></div>`;
 }
 
+function countUnique(rows, key) {
+  return new Set(rows.map((row) => row[key]).filter(Boolean)).size;
+}
+
+function groupCount(rows, key) {
+  return rows.reduce((acc, row) => {
+    const label = row[key] || "Sin dato";
+    acc[label] = (acc[label] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function groupedRows(rows, key, labelKey, valueKey) {
+  return Object.entries(groupCount(rows, key))
+    .map(([label, value]) => ({ [labelKey]: label, [valueKey]: value }))
+    .sort((a, b) => Number(b[valueKey] || 0) - Number(a[valueKey] || 0));
+}
+
+function activeFilterSummary() {
+  const parts = [];
+  if (state.search.trim()) parts.push(`texto: ${state.search.trim()}`);
+  if (state.product.trim()) parts.push(`producto: ${state.product.trim()}`);
+  if (state.entity !== "Todos") parts.push(`entidad: ${state.entity}`);
+  if (state.provider !== "Todos") parts.push(`proveedor: ${state.provider}`);
+  if (state.category !== "Todos") parts.push(`rubro: ${state.category}`);
+  if (state.year !== "Todos") parts.push(`anio: ${state.year}`);
+  if (state.month !== "Todos") parts.push(`mes: ${monthName(state.month)}`);
+  if (state.unit !== "Todos") parts.push(`unidad: ${state.unit}`);
+  if (state.level !== "Todos") parts.push(`senal: ${state.level}`);
+  return parts.length ? parts.join(" - ") : "sin filtros activos";
+}
+
 function renderKpis() {
-  const c = state.summary?.counts || {};
+  const priceRows = filteredPrice();
+  const concentrationRows = filteredConcentration();
+  const filterNote = activeFilterSummary();
   $("kpiGrid").innerHTML = [
-    kpi("Licitaciones", formatNumber(c.licitaciones || 0), "convocatorias publicadas"),
-    kpi("Items", formatNumber(c.items || 0), "detalle adjudicado"),
-    kpi("Alertas precio", formatNumber(c.price_alerts || 0), "ranking publicado"),
-    kpi("Concentracion", formatNumber(c.concentration_alerts || 0), "relaciones analizadas")
+    kpi("Alertas filtradas", formatNumber(priceRows.length), filterNote),
+    kpi("Entidades", formatNumber(countUnique(priceRows, "entidad")), "en resultados filtrados"),
+    kpi("Proveedores", formatNumber(countUnique(priceRows, "proveedor")), "en resultados filtrados"),
+    kpi("Concentracion", formatNumber(concentrationRows.length), "relaciones filtradas")
   ].join("");
 }
 
 function renderBars(target, rows, labelKey, valueKey, maxRows = 8) {
   const top = rows.slice(0, maxRows);
+  if (!top.length) {
+    target.innerHTML = `<p class="empty-state">Sin resultados para los filtros activos.</p>`;
+    return;
+  }
   const max = Math.max(...top.map((r) => Number(r[valueKey] || 0)), 1);
   target.innerHTML = top.map((row) => {
     const value = Number(row[valueKey] || 0);
@@ -403,14 +441,18 @@ function renderBars(target, rows, labelKey, valueKey, maxRows = 8) {
 }
 
 function renderLevelChart() {
-  const levels = state.summary?.price_stats?.levels || {};
-  const rows = Object.entries(levels).map(([level, count]) => ({ level, count }));
+  const priceRows = filteredPrice();
+  const levels = groupCount(priceRows, "nivel_bayes");
+  const order = ["Critico", "Alto", "Moderado", "Verificar dato", "Normal"];
+  const rows = order
+    .filter((level) => levels[level])
+    .map((level) => ({ level, count: levels[level] }));
   renderBars($("levelChart"), rows, "level", "count", 8);
-  $("priceCountLabel").textContent = `${formatNumber(state.price.length)} filas publicadas`;
+  $("priceCountLabel").textContent = `${formatNumber(priceRows.length)} resultados filtrados`;
 }
 
 function renderEntityChart() {
-  renderBars($("entityChart"), state.series.top_entidades || [], "entidad", "cantidad", 8);
+  renderBars($("entityChart"), groupedRows(filteredPrice(), "entidad", "entidad", "cantidad"), "entidad", "cantidad", 8);
 }
 
 function badge(level) {
@@ -471,9 +513,9 @@ function miniBayes(row) {
 }
 
 function renderBayesInsights() {
-  const rows = state.price || [];
-  const levels = state.summary?.price_stats?.levels || {};
-  const usable = Number(state.summary?.price_stats?.usable_rows || rows.length || 0);
+  const rows = filteredPrice();
+  const levels = groupCount(rows, "nivel_bayes");
+  const usable = rows.length;
   const verify = Number(levels["Verificar dato"] || 0);
   const critical = Number(levels.Critico || 0);
   const highPosterior = rows.filter((row) => Number(row.prob_alta || 0) > 0.95).length;
@@ -502,7 +544,7 @@ function renderCards() {
       <p>${text(row.entidad)}</p>
       <strong>${money(row.precio_promedio_ent)}</strong>
       ${miniBayes(row)}
-      <p>${row.observacion_calidad ? text(row.observacion_calidad) : `Referencia: ${money(row.precio_mediano)} · Prob.: ${pct(row.prob_alta)}`}</p>
+      <p>${row.observacion_calidad ? text(row.observacion_calidad) : `Referencia: ${money(row.precio_mediano)} - Prob.: ${pct(row.prob_alta)}`}</p>
       <button class="text-btn" type="button" data-detail-hash="${text(row.hash_registro)}">Ver detalle</button>
     </article>
   `).join("");
@@ -518,7 +560,7 @@ function renderPriceTable() {
       <td>${badge(row.nivel_bayes)}</td>
       <td>${probabilityMeter(row.prob_alta)}</td>
       <td>${scoreMeter(row.score_bayes)}</td>
-      <td><strong>${text(row.articulo)}</strong><br><small>${text(row.codigo_catalogo)} · ${text(row.unidad)}</small></td>
+      <td><strong>${text(row.articulo)}</strong><br><small>${text(row.codigo_catalogo)} - ${text(row.unidad)}</small></td>
       <td>${text(row.entidad)}</td>
       <td>${text(row.proveedor)}<br><small>${text(row.ruc)}</small></td>
       <td>${money(row.precio_promedio_ent)}</td>
@@ -566,8 +608,8 @@ function renderConcentration() {
     <article class="stack-item">
       ${badge(row.nivel_concentracion)}
       <strong>${text(row.entidad)}</strong>
-      <p>${text(row.proveedor)} · ${text(row.ruc)}</p>
-      <p>Score ${decimal(row.score_concentracion || 0, 1)} · Monto ${money(row.monto_total)} · Share ${pct(row.share_monto)}</p>
+      <p>${text(row.proveedor)} - ${text(row.ruc)}</p>
+      <p>Score ${decimal(row.score_concentracion || 0, 1)} - Monto ${money(row.monto_total)} - Share ${pct(row.share_monto)}</p>
     </article>
   `).join("");
   renderNetwork();
@@ -577,7 +619,7 @@ function renderDetail(row) {
   const threshold = thresholdInfo(row);
   const peerCount = detailPeers(row).length;
   $("detailTitle").textContent = row.articulo || "Detalle del item";
-  $("detailSubtitle").textContent = `${row.entidad || ""} · ${row.proveedor || ""}`;
+  $("detailSubtitle").textContent = `${row.entidad || ""} - ${row.proveedor || ""}`;
   $("detailContent").innerHTML = `
     <div class="detail-grid">
       <section class="detail-card">
@@ -733,6 +775,10 @@ function render() {
 }
 
 function rerenderFilteredViews() {
+  renderKpis();
+  renderBayesInsights();
+  renderLevelChart();
+  renderEntityChart();
   renderCards();
   renderPriceTable();
   renderConcentration();

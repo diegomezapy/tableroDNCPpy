@@ -351,6 +351,73 @@ select option {
   margin-bottom: 18px;
 }
 
+.civic-bayes-hero {
+  display: grid;
+  grid-template-columns: minmax(300px, 1.05fr) minmax(300px, .95fr);
+  gap: 18px;
+  align-items: center;
+  background: #092f20;
+  color: #e8fff2;
+  border: 0;
+  box-shadow: 0 18px 36px rgba(7, 59, 40, .18);
+}
+
+.civic-bayes-hero .eyebrow {
+  color: #f5d77d;
+}
+
+.civic-bayes-hero h2 {
+  color: #ffffff;
+  font-size: clamp(25px, 3.5vw, 40px);
+  line-height: 1.06;
+  margin-bottom: 10px;
+}
+
+.civic-bayes-hero p {
+  color: #cfe9dc;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.civic-equation {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(245, 215, 125, .5);
+  border-radius: 8px;
+  background: rgba(255,255,255,.08);
+  padding: 14px;
+}
+
+.civic-equation span,
+.civic-equation strong {
+  display: grid;
+  min-height: 56px;
+  place-items: center;
+  border-radius: 8px;
+  text-align: center;
+  padding: 9px;
+  font-weight: 800;
+}
+
+.civic-equation span {
+  background: rgba(255,255,255,.12);
+  color: #ffffff;
+}
+
+.civic-equation b {
+  color: #f5d77d;
+  font-size: 22px;
+}
+
+.civic-equation strong {
+  grid-column: 1 / -1;
+  background: #f5d77d;
+  color: #172014;
+  font-size: 17px;
+}
+
 .bayes-explainer {
   display: grid;
   grid-template-columns: minmax(260px, .9fr) minmax(320px, 1.35fr);
@@ -498,6 +565,7 @@ select option {
 
 .kpi small {
   color: var(--muted);
+  overflow-wrap: anywhere;
 }
 
 .grid {
@@ -537,6 +605,15 @@ select option {
 .bar-chart {
   display: grid;
   gap: 10px;
+}
+
+.empty-state {
+  border: 1px dashed #cbd8d3;
+  border-radius: 8px;
+  color: var(--muted);
+  margin: 0;
+  padding: 14px;
+  text-align: center;
 }
 
 .bar-row {
@@ -1324,6 +1401,7 @@ th {
   .card-grid,
   .detail-grid,
   .bayes-explainer,
+  .civic-bayes-hero,
   .insight-grid,
   .process-grid,
   .methodology-hero,
@@ -1335,6 +1413,9 @@ th {
   }
   .bayes-flow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .civic-equation {
+    grid-template-columns: 1fr;
   }
   .impact-figure {
     grid-template-columns: 1fr;
@@ -1371,6 +1452,9 @@ th {
   }
   .bayes-flow {
     grid-template-columns: 1fr;
+  }
+  .civic-bayes-hero {
+    padding: 16px;
   }
   .public-value-strip,
   .impact-outcomes {

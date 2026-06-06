@@ -218,3 +218,20 @@
 - Verificacion GAS: `GET /exec` del deployment v0.1.10 respondio `403 Prohibido`.
 - Commit main: `e0c7d3d`.
 - Commit gh-pages: `9e6f820`.
+
+### Filtros activos en Resumen y enfasis de aporte bayesiano
+
+- Problema reportado: los filtros laterales no afectaban la primera vista `Resumen`.
+- Causa: KPIs, distribucion de niveles, top entidades y tarjetas del motor Bayes usaban agregados globales (`summary` / `series`) en vez de recalcularse con `filteredPrice()`.
+- Correccion: `renderKpis`, `renderBayesInsights`, `renderLevelChart` y `renderEntityChart` ahora recalculan sobre filas filtradas.
+- Correccion: `rerenderFilteredViews()` vuelve a pintar tambien los componentes de `Resumen`.
+- Mejora visual: se agrego bloque inicial `Aporte central de la teoria bayesiana` con la formula conceptual `Datos abiertos + Evidencia comparable + Incertidumbre posterior = Preguntas ciudadanas verificables`.
+- Version actualizada: `APP_VERSION=0.1.11`; cache del service worker `licitabayes-dncp-v0-1-11`.
+- Regeneracion ejecutada: `py -3 scripts\build_static_data.py`.
+- Validacion ejecutada: `node --check assets\app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts\build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion Playwright local: al filtrar por `Ministerio de Salud Publica y Bienestar Social (MSPBS)`, `Resumen` paso de `5.000` alertas a `96`; top entidades paso a `1`; version visible `0.1.11`.
+- Deployment Apps Script v0.1.11 creado: `AKfycbykfPCyABmMx63lXkaBT4v3kUvKltQ33m8Pfc5eh93K7Ev5shyQpJL2C4CRH9GOkVOI2g`.
+- Verificacion GAS: `GET /exec` del deployment v0.1.11 respondio `403 Prohibido`.
+- Commit main: pendiente de publicar.
+- Commit gh-pages: pendiente de publicar.
