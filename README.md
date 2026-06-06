@@ -14,6 +14,8 @@ Priorizar revision humana sobre:
 - exploracion filtrable por entidad, anio, mes observado, articulo, rubro, proveedor, unidad y nivel de senal.
 - fichas explicativas clicables para entender cada clasificacion, con formula, tablas, graficos, pares comparables y lectura responsable.
 - registro minimo obligatorio de visita antes de entrar al panel.
+- vista de respaldo visible solo para admin `dmeza.py@gmail.com`.
+- explicacion visual del motor Bayes con flujo, medidores, curva posterior y fichas auditables.
 
 Las alertas son senales estadisticas exploratorias. No constituyen denuncia, prueba de irregularidad ni dictamen legal.
 
@@ -101,6 +103,10 @@ Nota: Google puede exigir la primera autorizacion desde el editor Apps Script an
 El acceso al panel exige nombre, institucion u organizacion, motivo de consulta y aceptacion de trazabilidad. El correo es opcional.
 
 El registro queda guardado en `localStorage` para no pedir los datos en cada recarga y se intenta respaldar en la hoja `VISITAS` mediante Apps Script. No se implementa contrasena en esta version porque el frontend es estatico en GitHub Pages; una contrasena real requiere backend con sesiones y verificacion del lado servidor.
+
+## Acceso admin a respaldo
+
+La planilla de respaldo en Google Drive fue verificada con permiso de propietario para `dmeza.py@gmail.com`. En la app, el modulo `Respaldo` y los enlaces a Google Sheets solo se muestran cuando el visitante registra ese correo. La restriccion real depende de los permisos de Drive; la condicion del frontend sirve para no exponer la vista operativa a visitantes.
 
 ## Actualizacion de version
 

@@ -135,6 +135,28 @@
 - Verificacion GAS: `GET /exec` del deployment v0.1.6 respondio `403 Prohibido`.
 - Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
 
+### Vista admin de respaldo y mejora visual Bayes
+
+- Problema reportado: la hoja de respaldo solo debe poder verla el admin `dmeza.py@gmail.com`.
+- Verificacion Drive: metadata de la planilla `1QJ_xagB5ze4ugYIpOosYPHBsp-o7TfQM8W8FUYSUnmQ` muestra permiso unico de propietario para `dmeza.py@gmail.com`.
+- Correccion UI: el modulo `Respaldo` y los enlaces `Hoja respaldo` / `Abrir planilla` quedan ocultos para visitantes no admin.
+- Correccion UI: los enlaces a Google Sheets ya no quedan como URL directa en HTML; se hidratan por JS solo si el visitante registrado usa el correo admin.
+- Criterio de seguridad: la restriccion real es Drive; el control frontend evita exposicion visual, pero no sustituye permisos del archivo.
+- Problema reportado: la app se sentia aburrida y no era clara la aplicacion bayesiana.
+- Mejora: se agrego bloque `Motor Bayes` en resumen con flujo referencia -> ratio -> contraccion -> posterior.
+- Mejora: tarjetas principales incorporan medidores de ratio y posterior, borde por nivel de riesgo y ranking visible.
+- Mejora: tabla de precios incorpora medidores visuales para probabilidad, score y ratio.
+- Mejora: ficha de detalle agrega proceso bayesiano paso a paso, curva posterior, zona de revision y explicacion textual de incertidumbre.
+- Version actualizada: `APP_VERSION=0.1.7`; cache del service worker `licitabayes-dncp-v0-1-7`.
+- Regeneracion ejecutada: `py -3 scripts/build_static_data.py`.
+- Validacion ejecutada: `node --check assets/app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion local Playwright: visitante comun no ve `Respaldo`; admin `dmeza.py@gmail.com` ve `Respaldo` y enlace Sheets hidratado.
+- Validacion local Playwright: ficha de detalle carga `.process-grid` con explicacion Bayes.
+- Deployment Apps Script v0.1.7 creado: `AKfycbxvAUgPdUTrzv66QBA79BMoUmvvvWOQP4O1DPf-zkF8u93GF35ZcCvZSrk3DIa8Omf8cA`.
+- Verificacion GAS: `GET /exec` del deployment v0.1.7 respondio `403 Prohibido`.
+- Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
+
 ### Boton obligatorio Actualizar version
 
 - Problema reportado: la app no tenia boton visible para actualizar la version.
