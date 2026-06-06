@@ -7,7 +7,14 @@ const state = {
   series: {},
   tab: "resumen",
   level: "Todos",
-  search: ""
+  search: "",
+  entity: "Todos",
+  product: "",
+  category: "Todos",
+  year: "Todos",
+  month: "Todos",
+  provider: "Todos",
+  unit: "Todos"
 };
 
 const $ = (id) => document.getElementById(id);
@@ -60,6 +67,62 @@ async function getJson(name) {
   return res.json();
 }
 
+function rowHasValue(row, key, selected) {
+  if (selected === "Todos") return true;
+  const value = row[key];
+  if (Array.isArray(value)) return value.map(String).includes(String(selected));
+  return String(value ?? "") === String(selected);
+}
+
+function codeCategory(row) {
+  return String(row.rubro || row.codigo_catalogo || "").slice(0, 4);
+}
+
+function uniqueOptions(rows, getter, limit = 500) {
+  const counts = new Map();
+  rows.forEach((row) => {
+    const raw = getter(row);
+    const values = Array.isArray(raw) ? raw : [raw];
+    values.forEach((value) => {
+      const clean = String(value ?? "").trim();
+      if (!clean) return;
+      counts.set(clean, (counts.get(clean) || 0) + 1);
+    });
+  });
+  return [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, limit)
+    .map(([value, count]) => ({ value, count }));
+}
+
+function setOptions(id, options, allLabel = "Todos", formatter = null) {
+  const el = $(id);
+  if (!el) return;
+  const current = el.value || "Todos";
+  el.innerHTML = [`<option value="Todos">${text(allLabel)}</option>`]
+    .concat(options.map((item) => {
+      const label = formatter ? formatter(item) : `${item.value} (${formatNumber(item.count)})`;
+      return `<option value="${text(item.value)}">${text(label)}</option>`;
+    }))
+    .join("");
+  el.value = [...el.options].some((opt) => opt.value === current) ? current : "Todos";
+}
+
+function monthName(value) {
+  return ["", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"][Number(value)] || value;
+}
+
+function populateFilters() {
+  const priceRows = state.price || [];
+  const allRows = priceRows.concat(state.concentration || []);
+  setOptions("entityFilter", uniqueOptions(allRows, (row) => row.entidad, 300), "Todas");
+  setOptions("providerFilter", uniqueOptions(allRows, (row) => row.proveedor, 300), "Todos");
+  setOptions("unitFilter", uniqueOptions(priceRows, (row) => row.unidad, 120), "Todas");
+  setOptions("categoryFilter", uniqueOptions(priceRows, codeCategory, 200), "Todos", (item) => `${item.value} (${formatNumber(item.count)})`);
+  setOptions("yearFilter", uniqueOptions(priceRows, (row) => row.anios_observados || row.anio, 40), "Todos", (item) => `${item.value} (${formatNumber(item.count)})`);
+  setOptions("monthFilter", uniqueOptions(priceRows, (row) => row.meses_observados, 12), "Todos", (item) => `${monthName(item.value)} (${formatNumber(item.count)})`);
+}
+
 async function loadData() {
   $("loadStatus").textContent = "Cargando JSON publicados...";
   const [summary, prices, concentration, series] = await Promise.all([
@@ -75,16 +138,25 @@ async function loadData() {
   $("loadStatus").textContent = "Datos cargados";
   $("lastRun").textContent = `Run ${summary.run_id || ""}`;
   $("appVersion").textContent = summary.app_version || CONFIG.appVersion || "0.1.0";
+  populateFilters();
   render();
 }
 
 function filteredPrice() {
   const q = state.search.trim().toLowerCase();
+  const product = state.product.trim().toLowerCase();
   return state.price.filter((row) => {
     const levelOk = state.level === "Todos" || row.nivel_bayes === state.level;
     if (!levelOk) return false;
+    if (state.entity !== "Todos" && row.entidad !== state.entity) return false;
+    if (state.provider !== "Todos" && row.proveedor !== state.provider) return false;
+    if (state.unit !== "Todos" && row.unidad !== state.unit) return false;
+    if (state.category !== "Todos" && codeCategory(row) !== state.category) return false;
+    if (!rowHasValue(row, "anios_observados", state.year) && !rowHasValue(row, "anio", state.year)) return false;
+    if (!rowHasValue(row, "meses_observados", state.month)) return false;
+    if (product && ![row.articulo, row.codigo_catalogo, row.unidad].join(" ").toLowerCase().includes(product)) return false;
     if (!q) return true;
-    return [row.articulo, row.entidad, row.proveedor, row.codigo_catalogo, row.ruc]
+    return [row.articulo, row.entidad, row.proveedor, row.codigo_catalogo, row.ruc, row.unidad, row.rubro]
       .join(" ")
       .toLowerCase()
       .includes(q);
@@ -96,6 +168,8 @@ function filteredConcentration() {
   return state.concentration.filter((row) => {
     const levelOk = state.level === "Todos" || row.nivel_concentracion === state.level;
     if (!levelOk) return false;
+    if (state.entity !== "Todos" && row.entidad !== state.entity) return false;
+    if (state.provider !== "Todos" && row.proveedor !== state.provider) return false;
     if (!q) return true;
     return [row.entidad, row.proveedor, row.ruc].join(" ").toLowerCase().includes(q);
   });
@@ -263,6 +337,12 @@ function render() {
   renderBackup();
 }
 
+function rerenderFilteredViews() {
+  renderCards();
+  renderPriceTable();
+  renderConcentration();
+}
+
 function setTab(tab) {
   state.tab = tab;
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tab));
@@ -300,26 +380,48 @@ function bindEvents() {
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
   $("searchBox").addEventListener("input", (event) => {
     state.search = event.target.value;
-    renderCards();
-    renderPriceTable();
-    renderConcentration();
+    rerenderFilteredViews();
+  });
+  $("productBox").addEventListener("input", (event) => {
+    state.product = event.target.value;
+    rerenderFilteredViews();
+  });
+  [
+    ["entityFilter", "entity"],
+    ["categoryFilter", "category"],
+    ["yearFilter", "year"],
+    ["monthFilter", "month"],
+    ["providerFilter", "provider"],
+    ["unitFilter", "unit"]
+  ].forEach(([id, key]) => {
+    $(id).addEventListener("change", (event) => {
+      state[key] = event.target.value;
+      rerenderFilteredViews();
+    });
   });
   document.querySelectorAll(".chip").forEach((btn) => btn.addEventListener("click", () => {
     document.querySelectorAll(".chip").forEach((chip) => chip.classList.remove("active"));
     btn.classList.add("active");
     state.level = btn.dataset.level;
-    renderCards();
-    renderPriceTable();
-    renderConcentration();
+    rerenderFilteredViews();
   }));
   $("clearFilters").addEventListener("click", () => {
     state.search = "";
     state.level = "Todos";
+    state.entity = "Todos";
+    state.product = "";
+    state.category = "Todos";
+    state.year = "Todos";
+    state.month = "Todos";
+    state.provider = "Todos";
+    state.unit = "Todos";
     $("searchBox").value = "";
+    $("productBox").value = "";
+    ["entityFilter", "categoryFilter", "yearFilter", "monthFilter", "providerFilter", "unitFilter"].forEach((id) => {
+      $(id).value = "Todos";
+    });
     document.querySelectorAll(".chip").forEach((chip) => chip.classList.toggle("active", chip.dataset.level === "Todos"));
-    renderCards();
-    renderPriceTable();
-    renderConcentration();
+    rerenderFilteredViews();
   });
   $("exportBtn").addEventListener("click", () => {
     const rows = state.tab === "concentracion" ? filteredConcentration() : filteredPrice();

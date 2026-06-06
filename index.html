@@ -35,6 +35,44 @@
         <label for="searchBox">Texto libre</label>
         <input id="searchBox" type="search" placeholder="articulo, entidad, proveedor, codigo">
 
+        <label for="entityFilter">Entidad o institucion</label>
+        <select id="entityFilter">
+          <option value="Todos">Todas</option>
+        </select>
+
+        <div class="filter-grid">
+          <div>
+            <label for="yearFilter">Anio</label>
+            <select id="yearFilter">
+              <option value="Todos">Todos</option>
+            </select>
+          </div>
+          <div>
+            <label for="monthFilter">Mes</label>
+            <select id="monthFilter">
+              <option value="Todos">Todos</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="productBox">Articulo o producto</label>
+        <input id="productBox" type="search" placeholder="nombre del bien, servicio o producto">
+
+        <label for="categoryFilter">Rubro / codigo catalogo</label>
+        <select id="categoryFilter">
+          <option value="Todos">Todos</option>
+        </select>
+
+        <label for="providerFilter">Proveedor</label>
+        <select id="providerFilter">
+          <option value="Todos">Todos</option>
+        </select>
+
+        <label for="unitFilter">Unidad</label>
+        <select id="unitFilter">
+          <option value="Todos">Todas</option>
+        </select>
+
         <span class="filter-label">Nivel de senal</span>
         <div class="level-buttons" id="levelButtons">
           <button class="chip active" type="button" data-level="Todos">Todos</button>
