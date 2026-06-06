@@ -66,3 +66,11 @@
 - Commit gh-pages: `272cdb9`.
 - Deployment Apps Script v0.1.2 creado: `AKfycbxAO0hU6oscY3MEVrOTW1Nb5JPLq9d7X0GOVl-yB6mHLdL15F6vHnuURtmoFnqzzj00KQ`.
 - Pendiente: reconstruir caches avanzados desde CSV crudos y agregar clustering o reglas semanticas de descripcion para mejorar comparabilidad fina.
+
+### Estudio de referencias normativas sobre precios referenciales
+
+- Se revisaron el compromiso OGP PY0041, la Resolucion DNCP 454/2024 y la Resolucion DNCP 1890/2020.
+- Hallazgo: la mediana historica no debe tratarse como precio referencial definitivo; debe ser solo un insumo con trazabilidad, comparabilidad y nivel de confianza.
+- Ideas incorporables: minimo tres precios documentados, combinacion de dos o mas fuentes, caracteristicas similares, separacion de servicios conexos, ajuste por IPC, ajuste por plazo/forma de pago y umbrales normativos de revision.
+- Documento agregado: `docs/referencias_normativas_precios.md`.
+- Propuesta tecnica: crear `cache/referencias_precio.parquet` y `data/reference_quality.json` con confianza de referencia, fuentes, dispersion, reglas de comparabilidad y semaforo normativo.
