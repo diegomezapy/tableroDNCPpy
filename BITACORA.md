@@ -20,4 +20,6 @@
 - Rama `gh-pages` publicada con commit estatico: `e5010b6`.
 - URL publica verificada: `https://diegomezapy.github.io/tableroDNCPpy/`.
 - Validacion publica Playwright: 4 KPIs, 250 filas en `Modelo Bayes` y sin errores de consola.
-- Pendiente: ejecutar `syncFromGithub()` en Apps Script si se instala el proyecto GAS para sincronizaciones posteriores.
+- Proyecto Apps Script creado con `clasp`: `1RyCnpi2EgClc8HDbHnnEFJ6cU5nKyOW82lIWBXZYBOfbnVA5YIEk4iD1`.
+- Deployment Apps Script creado: `AKfycbwKV8HoLAK336enxHmcYOKoF45-1c2H6SHFV7_UY_No-3dxEfAPGzPzVgEcI7YwOWVIdg`.
+- Pendiente GAS: primera autorizacion manual desde editor Apps Script; el endpoint devuelve 403 hasta autorizar/aclarar acceso.

@@ -78,12 +78,20 @@ gas/SheetSchema.gs
 gas/Sync.gs
 ```
 
+Proyecto Apps Script creado:
+
+```text
+https://script.google.com/d/1RyCnpi2EgClc8HDbHnnEFJ6cU5nKyOW82lIWBXZYBOfbnVA5YIEk4iD1/edit
+```
+
 Despues de publicar GitHub Pages, ejecutar en Apps Script:
 
 ```text
 ensureSchema_()
 syncFromGithub()
 ```
+
+Nota: Google puede exigir la primera autorizacion desde el editor Apps Script antes de permitir ejecucion web publica.
 
 ## Publicacion GitHub Pages
 
