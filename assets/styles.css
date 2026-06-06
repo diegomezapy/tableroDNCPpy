@@ -1160,6 +1160,21 @@ th {
   stroke-dasharray: 7 6;
 }
 
+.threshold-line.soft {
+  opacity: .55;
+  stroke-width: 2;
+}
+
+.expected-line {
+  stroke: var(--green-dark);
+  stroke-width: 3;
+  stroke-dasharray: 10 7;
+}
+
+.alert-text {
+  fill: var(--red);
+}
+
 .tail-area {
   fill: rgba(180, 35, 24, .3);
 }
@@ -1190,6 +1205,65 @@ th {
 .model-equation-card p {
   color: #40556b;
   line-height: 1.58;
+}
+
+.real-case-card {
+  border: 1px solid #d6e5df;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.real-case-card strong,
+.real-case-card span,
+.real-case-card small {
+  display: block;
+}
+
+.real-case-card strong {
+  color: var(--green-dark);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.real-case-card span {
+  color: #243445;
+  font-weight: 900;
+  line-height: 1.25;
+  margin-top: 4px;
+}
+
+.real-case-card small {
+  color: var(--muted);
+  line-height: 1.42;
+  margin-top: 4px;
+}
+
+.real-case-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px 8px;
+  margin: 10px 0;
+}
+
+.real-case-metrics b,
+.real-case-metrics em {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.real-case-metrics b {
+  color: var(--green-dark);
+  font-size: 13px;
+}
+
+.real-case-metrics em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .math-box.compact {
@@ -1682,6 +1756,9 @@ th {
   }
   .model-steps {
     grid-template-columns: 1fr;
+  }
+  .real-case-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .public-value-strip,
   .impact-outcomes {
