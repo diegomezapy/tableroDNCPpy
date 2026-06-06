@@ -96,3 +96,18 @@
 - Commit main: `8cd9ae3`.
 - Commit gh-pages: `4f76762`.
 - Deployment Apps Script v0.1.4 creado: `AKfycbzF0hj24Wyw10yIse0QpS1UqYcYdhgpBDNeWWa8kHpTN2qzbzDeeBVFtUJscB4bs5wVaQ`.
+
+### Registro minimo obligatorio de visita
+
+- Problema reportado: la app no pedia ningun registro al usuario antes de entrar al panel.
+- Decision tecnica: exigir un registro minimo de visita en vez de contrasena, porque GitHub Pages es frontend estatico y una contrasena real requiere backend con sesiones y verificacion del lado servidor.
+- Correccion: se agrego pantalla inicial obligatoria con nombre y apellido, institucion u organizacion, motivo de consulta, correo opcional y aceptacion de trazabilidad.
+- Correccion: el panel queda oculto hasta que exista visitante registrado; se agrego regla CSS `[hidden]` para evitar que el layout se muestre debajo del formulario.
+- Correccion: el visitante se guarda en `localStorage` para continuidad de sesion local y puede cambiarse desde el panel.
+- Respaldo operativo: Apps Script incorpora hoja `VISITAS` con `id_visita`, `fecha_hora`, `nombre`, `correo`, `institucion`, `motivo`, `app_version`, `data_version`, `pagina`, `user_agent`, `origen` y `raw_json`.
+- Version actualizada: `APP_VERSION=0.1.5`; `DATA_VERSION` se mantiene en `dncp-cache-2025-ref-v3`.
+- Validacion ejecutada: `node --check assets/app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
+- Regeneracion ejecutada: `py -3 scripts/build_static_data.py`.
+- Validacion local Playwright: primer acceso muestra solo el registro obligatorio; con visitante guardado carga KPIs y alertas de la version `0.1.5`.
+- Pendiente GAS: desplegar version Apps Script v0.1.5 y autorizar manualmente si Google mantiene bloqueo 403.

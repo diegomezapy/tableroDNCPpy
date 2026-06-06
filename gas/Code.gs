@@ -19,12 +19,32 @@ function doPost(e) {
     if (API_TOKEN && payload.token !== API_TOKEN) {
       throw new Error('Token invalido');
     }
+    if (payload.evento === 'visit_register' && payload.visitor) {
+      appendVisit_(ss, payload.visitor);
+    }
     appendLog_(ss, payload.evento || 'client_event', payload.usuario || 'web', payload.modulo || 'Frontend', payload.detalle || '', APP_VERSION, payload.data_version || '', 'Web', payload.github_commit || '', 'success', payload.observacion || '', payload);
     return json_({ success: true, logged_at: now });
   } catch (err) {
     appendError_(ss, 'Code', 'doPost', 'No se pudo registrar evento del cliente', err, {}, now);
     return json_({ success: false, error: String(err) });
   }
+}
+
+function appendVisit_(ss, visitor) {
+  ss.getSheetByName('VISITAS').appendRow([
+    visitor.id_visita || Utilities.getUuid(),
+    visitor.fecha_hora || new Date().toISOString(),
+    visitor.nombre || '',
+    visitor.correo || '',
+    visitor.institucion || '',
+    visitor.motivo || '',
+    visitor.app_version || APP_VERSION,
+    visitor.data_version || '',
+    visitor.pagina || '',
+    visitor.user_agent || '',
+    visitor.origen || 'Web',
+    JSON.stringify(visitor).slice(0, 45000)
+  ]);
 }
 
 function installHourlySyncTrigger() {

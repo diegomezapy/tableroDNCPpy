@@ -13,6 +13,7 @@ Priorizar revision humana sobre:
 - calidad y cobertura de datos usados por el modelo.
 - exploracion filtrable por entidad, anio, mes observado, articulo, rubro, proveedor, unidad y nivel de senal.
 - fichas explicativas clicables para entender cada clasificacion, con formula, tablas, graficos, pares comparables y lectura responsable.
+- registro minimo obligatorio de visita antes de entrar al panel.
 
 Las alertas son senales estadisticas exploratorias. No constituyen denuncia, prueba de irregularidad ni dictamen legal.
 
@@ -94,6 +95,12 @@ syncFromGithub()
 ```
 
 Nota: Google puede exigir la primera autorizacion desde el editor Apps Script antes de permitir ejecucion web publica.
+
+## Registro de visita
+
+El acceso al panel exige nombre, institucion u organizacion, motivo de consulta y aceptacion de trazabilidad. El correo es opcional.
+
+El registro queda guardado en `localStorage` para no pedir los datos en cada recarga y se intenta respaldar en la hoja `VISITAS` mediante Apps Script. No se implementa contrasena en esta version porque el frontend es estatico en GitHub Pages; una contrasena real requiere backend con sesiones y verificacion del lado servidor.
 
 ## Publicacion GitHub Pages
 
