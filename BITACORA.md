@@ -282,5 +282,5 @@
 - Deployment Apps Script v0.1.14 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @5.
 - Verificacion GAS: `GET /exec` del deployment v0.1.14 respondio `403 Forbidden`.
 - Pendiente GAS: autorizar scopes y confirmar acceso del deployment desde la UI de Apps Script si se requiere API publica.
-- Commit main: `pendiente`.
-- Commit gh-pages: `pendiente`.
+- Commit main: `a1242f1`.
+- Commit gh-pages: `2d14684`.
