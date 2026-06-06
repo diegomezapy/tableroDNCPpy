@@ -93,3 +93,6 @@
 - La ficha muestra formula de ratio, precio observado, referencia, probabilidad posterior, score, intervalo posterior, semaforo normativo orientativo, tabla de variables, pares comparables publicados y lectura responsable.
 - Se agrego enlace directo por `?detail=<hash_registro>` para compartir o validar una ficha especifica.
 - Version actualizada: `APP_VERSION=0.1.4`; `DATA_VERSION` se mantiene en `dncp-cache-2025-ref-v3`.
+- Commit main: `8cd9ae3`.
+- Commit gh-pages: `4f76762`.
+- Deployment Apps Script v0.1.4 creado: `AKfycbzF0hj24Wyw10yIse0QpS1UqYcYdhgpBDNeWWa8kHpTN2qzbzDeeBVFtUJscB4bs5wVaQ`.
