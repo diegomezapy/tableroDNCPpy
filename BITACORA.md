@@ -235,3 +235,18 @@
 - Verificacion GAS: `GET /exec` del deployment v0.1.11 respondio `403 Prohibido`.
 - Commit main: `fd0d040`.
 - Commit gh-pages: `6147258`.
+
+### GAS asociado al libro corregido
+
+- Problema reportado: el Apps Script asociado al libro `1DUbhm-6S67wk4NYbL_nAkWa5wlXjz4GaemSdbsz2oEPn1Rii2qmKLIs4` no tenia contenido.
+- Causa: el repositorio tenia `.clasp.json` apuntando al proyecto standalone anterior `1RyCnpi2EgClc8HDbHnnEFJ6cU5nKyOW82lIWBXZYBOfbnVA5YIEk4iD1`.
+- Correccion: `.clasp.json` ahora apunta al GAS asociado al libro.
+- Correccion: se subieron `appsscript.json`, `Code.gs`, `Config.gs`, `SheetSchema.gs` y `Sync.gs` al proyecto asociado.
+- Verificacion: `clasp clone 1DUbhm-6S67wk4NYbL_nAkWa5wlXjz4GaemSdbsz2oEPn1Rii2qmKLIs4` descargo 5 archivos desde Google, confirmando que el GAS ya no esta vacio.
+- Version actualizada: `APP_VERSION=0.1.12`; cache del service worker `licitabayes-dncp-v0-1-12`.
+- Deployment Apps Script v0.1.12 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @2.
+- Frontend actualizado para usar el endpoint del GAS asociado al libro.
+- Verificacion GAS: `GET /exec` del deployment v0.1.12 respondio `403 Prohibido`.
+- Pendiente GAS: abrir el Apps Script asociado, autorizar scopes y ajustar deployment/acceso si Google mantiene el bloqueo.
+- Commit main: pendiente de publicar.
+- Commit gh-pages: pendiente de publicar.

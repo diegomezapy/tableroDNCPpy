@@ -2,13 +2,13 @@
 
 ## Instalacion
 
-Proyecto creado:
+Proyecto Apps Script asociado al libro:
 
-https://script.google.com/d/1RyCnpi2EgClc8HDbHnnEFJ6cU5nKyOW82lIWBXZYBOfbnVA5YIEk4iD1/edit
+https://script.google.com/d/1DUbhm-6S67wk4NYbL_nAkWa5wlXjz4GaemSdbsz2oEPn1Rii2qmKLIs4/edit
 
-Deployment creado:
+Deployment activo:
 
-https://script.google.com/macros/s/AKfycbwROIhGtWqEc2UakPVrw1qsnazj9FT7PXhGqO1rEIfx84fmWBIwivEwtJpdiS1kef29zQ/exec
+https://script.google.com/macros/s/AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb/exec
 
 1. Abrir el proyecto Apps Script.
 2. Autorizar manualmente `ensureSchema_()` o `syncFromGithub()` la primera vez.

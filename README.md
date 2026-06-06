@@ -92,10 +92,16 @@ gas/SheetSchema.gs
 gas/Sync.gs
 ```
 
-Proyecto Apps Script creado:
+Proyecto Apps Script asociado al libro:
 
 ```text
-https://script.google.com/d/1RyCnpi2EgClc8HDbHnnEFJ6cU5nKyOW82lIWBXZYBOfbnVA5YIEk4iD1/edit
+https://script.google.com/d/1DUbhm-6S67wk4NYbL_nAkWa5wlXjz4GaemSdbsz2oEPn1Rii2qmKLIs4/edit
+```
+
+Deployment activo:
+
+```text
+https://script.google.com/macros/s/AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb/exec
 ```
 
 Despues de publicar GitHub Pages, ejecutar en Apps Script:
