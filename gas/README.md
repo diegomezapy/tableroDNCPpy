@@ -8,7 +8,7 @@ https://script.google.com/d/1RyCnpi2EgClc8HDbHnnEFJ6cU5nKyOW82lIWBXZYBOfbnVA5YIE
 
 Deployment creado:
 
-https://script.google.com/macros/s/AKfycbwKV8HoLAK336enxHmcYOKoF45-1c2H6SHFV7_UY_No-3dxEfAPGzPzVgEcI7YwOWVIdg/exec
+https://script.google.com/macros/s/AKfycbwROIhGtWqEc2UakPVrw1qsnazj9FT7PXhGqO1rEIfx84fmWBIwivEwtJpdiS1kef29zQ/exec
 
 1. Abrir el proyecto Apps Script.
 2. Autorizar manualmente `ensureSchema_()` o `syncFromGithub()` la primera vez.

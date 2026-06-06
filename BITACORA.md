@@ -23,3 +23,14 @@
 - Proyecto Apps Script creado con `clasp`: `1RyCnpi2EgClc8HDbHnnEFJ6cU5nKyOW82lIWBXZYBOfbnVA5YIEk4iD1`.
 - Deployment Apps Script creado: `AKfycbwKV8HoLAK336enxHmcYOKoF45-1c2H6SHFV7_UY_No-3dxEfAPGzPzVgEcI7YwOWVIdg`.
 - Pendiente GAS: primera autorizacion manual desde editor Apps Script; el endpoint devuelve 403 hasta autorizar/aclarar acceso.
+
+### Correccion de formato numerico y acceso
+
+- Problema reportado: el boton `Entrar al panel` no funcionaba para el usuario.
+- Correccion: la app ahora carga directamente el panel, sin pantalla de acceso intermedia.
+- Problema reportado: montos como `G. 71.9 M` eran ambiguos e inconsistentes.
+- Correccion: todos los montos visibles se muestran completos en guaranies con punto de miles y coma decimal, por ejemplo `G. 71.900.000`.
+- Correccion adicional: scores y ratios usan coma decimal (`100,0`, `425,69x`) y los conteos usan punto de miles.
+- Validacion local Playwright: panel visible al cargar, 250 filas en `Modelo Bayes`, primer monto `G. 90.200.000`, sin abreviaturas monetarias y sin errores de consola.
+- Hoja de respaldo actualizada a `APP_VERSION=0.1.1`.
+- Deployment Apps Script v0.1.1 creado: `AKfycbwROIhGtWqEc2UakPVrw1qsnazj9FT7PXhGqO1rEIfx84fmWBIwivEwtJpdiS1kef29zQ`.
