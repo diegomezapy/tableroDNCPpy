@@ -153,6 +153,8 @@
 - Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
 - Validacion local Playwright: visitante comun no ve `Respaldo`; admin `dmeza.py@gmail.com` ve `Respaldo` y enlace Sheets hidratado.
 - Validacion local Playwright: ficha de detalle carga `.process-grid` con explicacion Bayes.
+- Commit main: `ad83dd5`.
+- Commit gh-pages: `ed151cb`.
 - Deployment Apps Script v0.1.7 creado: `AKfycbxvAUgPdUTrzv66QBA79BMoUmvvvWOQP4O1DPf-zkF8u93GF35ZcCvZSrk3DIa8Omf8cA`.
 - Verificacion GAS: `GET /exec` del deployment v0.1.7 respondio `403 Prohibido`.
 - Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
