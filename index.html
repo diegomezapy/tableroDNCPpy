@@ -329,6 +329,91 @@
           </div>
         </article>
 
+        <article class="panel methodology-wide bayes-regression-panel">
+          <div class="bayes-regression-head">
+            <p class="eyebrow">Figura central del modelo</p>
+            <h2>Regresion bayesiana: aprender el precio esperado y medir la incertidumbre</h2>
+            <p>La lectura mas potente de Bayes es esta: no compara una fila contra una regla rigida. Aprende un comportamiento esperado segun evidencia comparable, conserva incertidumbre y calcula la probabilidad posterior de que un precio quede por encima de un umbral razonable.</p>
+          </div>
+
+          <div class="bayes-model-layout">
+            <figure class="bayes-model-figure" aria-label="Figura conceptual de regresion bayesiana para precios publicos">
+              <svg viewBox="0 0 820 430" role="img" aria-labelledby="bayesModelTitle bayesModelDesc">
+                <title id="bayesModelTitle">Regresion bayesiana con posterior de precio alto</title>
+                <desc id="bayesModelDesc">La figura muestra datos comparables, una linea esperada, banda de incertidumbre y probabilidad posterior de superar 1,5 veces la referencia.</desc>
+                <defs>
+                  <linearGradient id="bandGradient" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stop-color="#dcebe5" />
+                    <stop offset="55%" stop-color="#fff3c4" />
+                    <stop offset="100%" stop-color="#f8cbc6" />
+                  </linearGradient>
+                  <marker id="arrowModel" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                    <path d="M0,0 L0,6 L9,3 z" fill="#0B5D3B" />
+                  </marker>
+                </defs>
+
+                <rect x="18" y="18" width="505" height="350" rx="14" class="svg-panel" />
+                <text x="42" y="52" class="svg-title">Datos comparables + regresion posterior</text>
+                <line x1="76" y1="318" x2="476" y2="318" class="axis" />
+                <line x1="76" y1="318" x2="76" y2="82" class="axis" />
+                <text x="178" y="348" class="axis-label">Referencia comparable y contexto</text>
+                <text x="24" y="204" class="axis-label rotate">log(precio / referencia)</text>
+
+                <path d="M86 256 C150 237, 225 204, 294 174 C363 143, 425 121, 472 105 L472 189 C420 199, 350 221, 291 249 C220 280, 148 301, 86 310 Z" fill="url(#bandGradient)" opacity=".78" />
+                <path d="M86 283 C150 262, 225 232, 294 204 C363 173, 425 149, 472 132" class="reg-line" />
+                <text x="322" y="112" class="svg-note">banda posterior creible</text>
+                <text x="315" y="153" class="svg-note dark">precio esperado ajustado</text>
+
+                <circle cx="105" cy="286" r="5" class="dot ok" />
+                <circle cx="132" cy="272" r="5" class="dot ok" />
+                <circle cx="155" cy="250" r="5" class="dot ok" />
+                <circle cx="182" cy="264" r="5" class="dot soft" />
+                <circle cx="207" cy="226" r="5" class="dot ok" />
+                <circle cx="230" cy="244" r="5" class="dot soft" />
+                <circle cx="254" cy="203" r="5" class="dot ok" />
+                <circle cx="282" cy="219" r="5" class="dot soft" />
+                <circle cx="305" cy="178" r="5" class="dot ok" />
+                <circle cx="331" cy="189" r="5" class="dot soft" />
+                <circle cx="356" cy="151" r="5" class="dot ok" />
+                <circle cx="381" cy="167" r="5" class="dot soft" />
+                <circle cx="407" cy="129" r="5" class="dot ok" />
+                <circle cx="437" cy="145" r="5" class="dot soft" />
+                <circle cx="455" cy="86" r="8" class="dot alert" />
+                <text x="365" y="78" class="svg-alert">item priorizado</text>
+
+                <rect x="42" y="376" width="486" height="52" rx="10" class="formula-ribbon" />
+                <text x="60" y="399" class="formula-text">y_i = log(precio_i / referencia_i)</text>
+                <text x="60" y="418" class="formula-text">y_i ~ Normal(mu_i, sigma),  mu_i = beta_0 + beta_entidad + beta_rubro + beta_unidad</text>
+
+                <line x1="526" y1="205" x2="588" y2="205" class="model-arrow" marker-end="url(#arrowModel)" />
+
+                <rect x="592" y="18" width="226" height="350" rx="14" class="svg-panel" />
+                <text x="612" y="52" class="svg-title">Posterior del item</text>
+                <path d="M615 300 C648 291, 664 244, 684 184 C707 112, 742 107, 761 173 C776 224, 786 278, 805 300 Z" class="posterior-area" />
+                <path d="M615 300 C648 291, 664 244, 684 184 C707 112, 742 107, 761 173 C776 224, 786 278, 805 300" class="posterior-line" />
+                <line x1="735" y1="82" x2="735" y2="318" class="threshold-line" />
+                <text x="744" y="92" class="svg-note dark">umbral 1,5x</text>
+                <path d="M735 300 C752 186, 777 225, 805 300 Z" class="tail-area" />
+                <text x="625" y="342" class="axis-label">ratio posterior</text>
+                <text x="612" y="392" class="posterior-callout">P(ratio &gt; 1,5 | datos)</text>
+                <text x="612" y="416" class="posterior-callout strong">prioridad de revision</text>
+              </svg>
+            </figure>
+
+            <div class="model-equation-card">
+              <h3>Que aporta esta capa bayesiana</h3>
+              <p>El tablero actual usa una forma empirical Bayes para estabilizar referencias. Una regresion bayesiana jerarquica permite ampliar esa misma idea: controlar rubro, entidad, unidad, proveedor y tiempo, sin perder incertidumbre.</p>
+              <div class="math-box compact">posterior = prior + evidencia comparable</div>
+              <div class="model-steps">
+                <div><span>1</span><strong>Aprende patron esperado</strong><small>precio relativo segun rubro, unidad, entidad y contexto.</small></div>
+                <div><span>2</span><strong>Reduce ruido</strong><small>casos con poca evidencia vuelven hacia una base prudente.</small></div>
+                <div><span>3</span><strong>Calcula probabilidad</strong><small>no solo muestra un ratio: estima la cola posterior.</small></div>
+                <div><span>4</span><strong>Explica la prioridad</strong><small>cada alerta se traduce en una pregunta verificable.</small></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
         <article class="panel methodology-wide citizen-impact">
           <div class="citizen-impact-head">
             <p class="eyebrow">Aporte a la ciudadania</p>

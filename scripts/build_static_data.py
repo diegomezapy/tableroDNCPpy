@@ -25,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CACHE_DIR = ROOT / "cache"
 DATA_DIR = ROOT / "data"
 
-APP_VERSION = "0.1.12"
+APP_VERSION = "0.1.13"
 DATA_VERSION = "dncp-cache-2025-ref-v3"
 PAGES_URL = "https://diegomezapy.github.io/tableroDNCPpy/"
 SOURCE_URL = "https://contrataciones.gov.py/datos"

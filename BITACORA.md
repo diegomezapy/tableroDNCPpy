@@ -250,3 +250,19 @@
 - Pendiente GAS: abrir el Apps Script asociado, autorizar scopes y ajustar deployment/acceso si Google mantiene el bloqueo.
 - Commit main: `ea31b9b`.
 - Commit gh-pages: `921e94f`.
+
+### Figura visual de regresion bayesiana
+
+- Problema reportado: aun no se veia una figura genial que explique como funciona el modelo bayesiano.
+- Decision tecnica: agregar una figura conceptual de regresion bayesiana jerarquica, aclarando que el tablero actual usa una capa empirical Bayes y que la regresion bayesiana es la extension natural para controlar rubro, entidad, unidad, proveedor y tiempo.
+- Figura agregada: nube de puntos comparables, linea de precio esperado, banda posterior creible, item priorizado, flecha hacia distribucion posterior y cola sombreada `P(ratio > 1,5 | datos)`.
+- Formula visible: `y_i = log(precio_i / referencia_i)` y `y_i ~ Normal(mu_i, sigma), mu_i = beta_0 + beta_entidad + beta_rubro + beta_unidad`.
+- Mejora responsive: la figura ocupa ancho completo en escritorio y queda desplazable horizontalmente en celular.
+- Version actualizada: `APP_VERSION=0.1.13`; cache del service worker `licitabayes-dncp-v0-1-13`.
+- Regeneracion ejecutada: `py -3 scripts\build_static_data.py`.
+- Validacion ejecutada: `node --check assets\app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts\build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion Playwright local: `?tab=metodologia` muestra `.bayes-model-figure`, titulo `Regresion bayesiana: aprender el precio esperado y medir la incertidumbre`, version visible `0.1.13`.
+- Deployment Apps Script v0.1.13 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @4.
+- Commit main: pendiente de publicar.
+- Commit gh-pages: pendiente de publicar.
