@@ -266,3 +266,21 @@
 - Deployment Apps Script v0.1.13 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @4.
 - Commit main: `a180b72`.
 - Commit gh-pages: `d7b7142`.
+
+### Figura bayesiana alimentada con datos reales
+
+- Problema reportado: la figura conceptual era util, pero debia mostrar con los datos reales como funciona el modelo.
+- Correccion: la figura de `Metodologia` ahora se genera desde `filteredPrice()` y toma el primer caso real relevante del ranking filtrado.
+- Datos reales mostrados: articulo, entidad, proveedor, precio observado, referencia comparable, ratio observado, intervalo posterior, probabilidad posterior, score, nivel de senal y pares del mismo codigo/unidad.
+- Comportamiento agregado: al cambiar filtros de entidad, anio, mes, producto, rubro, proveedor, unidad, texto o nivel, la figura y la tarjeta de caso real se recalculan junto con KPIs, graficos y tablas.
+- Ejemplo validado localmente: sin filtros muestra `Construccion de cancha de futbol`; al filtrar por `Ministerio de Salud Publica y Bienestar Social (MSPBS)` cambia a `Impresion de formularios varios`.
+- Version actualizada: `APP_VERSION=0.1.14`; cache del service worker `licitabayes-dncp-v0-1-14`.
+- Regeneracion ejecutada: `py -3 scripts\build_static_data.py`.
+- Validacion ejecutada: `node --check assets\app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts\build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion Playwright local: `?tab=metodologia` muestra `#realBayesFigure svg`; version visible `0.1.14`; KPI filtrado pasa de `5.000` a `96`; figura movil queda desplazable y tarjeta real completa.
+- Deployment Apps Script v0.1.14 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @5.
+- Verificacion GAS: `GET /exec` del deployment v0.1.14 respondio `403 Forbidden`.
+- Pendiente GAS: autorizar scopes y confirmar acceso del deployment desde la UI de Apps Script si se requiere API publica.
+- Commit main: `pendiente`.
+- Commit gh-pages: `pendiente`.

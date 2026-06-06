@@ -180,6 +180,130 @@ function detailPeers(row) {
     .slice(0, 12);
 }
 
+function shortLabel(value, max = 44) {
+  const clean = String(value || "Sin dato").trim();
+  return clean.length > max ? `${clean.slice(0, max - 1)}...` : clean;
+}
+
+function ratioValue(row) {
+  const direct = Number(row.ratio_observado || 0);
+  if (direct > 0) return direct;
+  const observed = Number(row.precio_promedio_ent || 0);
+  const ref = Number(row.precio_mediano || 0);
+  return ref > 0 ? observed / ref : 0;
+}
+
+function renderRealBayesFigure() {
+  if (!$("realBayesFigure")) return;
+  const row = filteredPrice().find((item) => !item.observacion_calidad) || filteredPrice()[0] || state.price[0];
+  if (!row) {
+    $("realBayesFigure").innerHTML = `<p class="empty-state">Sin datos reales para dibujar el modelo.</p>`;
+    if ($("realBayesCase")) $("realBayesCase").innerHTML = "";
+    return;
+  }
+
+  const peers = detailPeers(row);
+  const peerPoints = peers
+    .filter((item, index, arr) => arr.findIndex((other) => other.hash_registro === item.hash_registro) === index)
+    .sort((a, b) => ratioValue(a) - ratioValue(b))
+    .slice(-11);
+  const points = peerPoints.concat(row)
+    .filter((item, index, arr) => arr.findIndex((other) => other.hash_registro === item.hash_registro) === index)
+    .sort((a, b) => ratioValue(a) - ratioValue(b));
+  const ratios = points.map(ratioValue).filter((value) => value > 0);
+  const ratio = ratioValue(row);
+  const low = Math.max(0.1, Number(row.intervalo_bajo || Math.max(0.8, ratio * 0.65)));
+  const high = Math.max(low + 0.1, Number(row.intervalo_alto || Math.max(1.2, ratio * 1.25)));
+  const maxRatio = Math.max(2.2, 1.5, high, ratio, ...ratios) * 1.08;
+  const logMin = Math.log(0.65);
+  const logMax = Math.log(maxRatio);
+  const plot = { x: 76, y: 82, w: 400, h: 236 };
+  const yScale = (value) => {
+    const safe = Math.max(0.65, Math.min(maxRatio, Number(value || 0.65)));
+    return plot.y + plot.h - ((Math.log(safe) - logMin) / (logMax - logMin)) * plot.h;
+  };
+  const xScale = (index, total) => total <= 1 ? plot.x + plot.w * 0.82 : plot.x + 14 + (index / (total - 1)) * (plot.w - 28);
+  const expectedY = yScale(1);
+  const thresholdY = yScale(1.5);
+  const lowY = yScale(low);
+  const highY = yScale(high);
+  const selectedIndex = Math.max(0, points.findIndex((item) => item.hash_registro === row.hash_registro));
+  const selectedX = xScale(selectedIndex, points.length);
+  const selectedY = yScale(ratio);
+  const pointSvg = points.map((item, index) => {
+    const isSelected = item.hash_registro === row.hash_registro;
+    const cx = xScale(index, points.length);
+    const cy = yScale(ratioValue(item));
+    return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${isSelected ? 8 : 5}" class="dot ${isSelected ? "alert" : Number(item.prob_alta || 0) > 0.95 ? "soft" : "ok"}"><title>${text(shortLabel(item.entidad, 70))} - ratio ${decimal(ratioValue(item), 2)}x</title></circle>`;
+  }).join("");
+  const prob = Math.max(0, Math.min(1, Number(row.prob_alta || 0)));
+  const posteriorLabel = pct(prob);
+  const tailOpacity = (0.18 + prob * 0.38).toFixed(2);
+
+  $("realBayesFigure").innerHTML = `
+    <svg viewBox="0 0 820 455" role="img" aria-labelledby="realBayesTitle realBayesDesc">
+      <title id="realBayesTitle">Modelo bayesiano con datos reales del ranking</title>
+      <desc id="realBayesDesc">Caso real ${text(row.articulo)} de ${text(row.entidad)} con ratio ${decimal(ratio, 2)}x y probabilidad posterior ${posteriorLabel}.</desc>
+      <defs>
+        <linearGradient id="realBandGradient" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0%" stop-color="#dcebe5" />
+          <stop offset="55%" stop-color="#fff3c4" />
+          <stop offset="100%" stop-color="#f8cbc6" />
+        </linearGradient>
+        <marker id="realArrowModel" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+          <path d="M0,0 L0,6 L9,3 z" fill="#0B5D3B" />
+        </marker>
+      </defs>
+
+      <rect x="18" y="18" width="505" height="374" rx="14" class="svg-panel" />
+      <text x="42" y="52" class="svg-title">Caso real: ${text(shortLabel(row.articulo, 44))}</text>
+      <text x="42" y="73" class="svg-note dark">${text(shortLabel(row.entidad, 74))}</text>
+      <line x1="${plot.x}" y1="${plot.y + plot.h}" x2="${plot.x + plot.w}" y2="${plot.y + plot.h}" class="axis" />
+      <line x1="${plot.x}" y1="${plot.y + plot.h}" x2="${plot.x}" y2="${plot.y}" class="axis" />
+      <text x="160" y="348" class="axis-label">Pares publicados del mismo codigo y unidad</text>
+      <text x="24" y="214" class="axis-label rotate">log(precio / referencia)</text>
+
+      <rect x="${plot.x + 1}" y="${Math.min(highY, lowY).toFixed(1)}" width="${plot.w - 2}" height="${Math.max(6, Math.abs(lowY - highY)).toFixed(1)}" fill="url(#realBandGradient)" opacity=".72" />
+      <line x1="${plot.x}" y1="${expectedY.toFixed(1)}" x2="${plot.x + plot.w}" y2="${expectedY.toFixed(1)}" class="expected-line" />
+      <line x1="${plot.x}" y1="${thresholdY.toFixed(1)}" x2="${plot.x + plot.w}" y2="${thresholdY.toFixed(1)}" class="threshold-line soft" />
+      <text x="${plot.x + plot.w - 110}" y="${Math.max(plot.y + 14, expectedY - 8).toFixed(1)}" class="svg-note dark">referencia 1,0x</text>
+      <text x="${plot.x + plot.w - 110}" y="${Math.max(plot.y + 28, thresholdY - 8).toFixed(1)}" class="svg-note alert-text">umbral 1,5x</text>
+      <text x="88" y="${Math.max(plot.y + 18, highY - 10).toFixed(1)}" class="svg-note dark">intervalo posterior real: ${decimal(low, 2)}x a ${decimal(high, 2)}x</text>
+
+      ${pointSvg}
+      <line x1="${selectedX.toFixed(1)}" y1="${selectedY.toFixed(1)}" x2="556" y2="214" class="model-arrow" marker-end="url(#realArrowModel)" />
+      <text x="${Math.max(95, selectedX - 70).toFixed(1)}" y="${Math.max(plot.y + 16, selectedY - 16).toFixed(1)}" class="svg-alert">item priorizado: ${decimal(ratio, 2)}x</text>
+
+      <rect x="42" y="402" width="486" height="42" rx="10" class="formula-ribbon" />
+      <text x="60" y="426" class="formula-text">ratio = ${money(row.precio_promedio_ent)} / ${money(row.precio_mediano)} = ${decimal(ratio, 2)}x</text>
+
+      <rect x="592" y="18" width="226" height="374" rx="14" class="svg-panel" />
+      <text x="612" y="52" class="svg-title">Posterior del item</text>
+      <text x="612" y="74" class="svg-note dark">${text(shortLabel(row.proveedor || "Proveedor sin dato", 38))}</text>
+      <path d="M615 314 C648 305, 664 252, 684 194 C707 118, 742 118, 761 184 C776 234, 786 292, 805 314 Z" class="posterior-area" />
+      <path d="M615 314 C648 305, 664 252, 684 194 C707 118, 742 118, 761 184 C776 234, 786 292, 805 314" class="posterior-line" />
+      <line x1="735" y1="92" x2="735" y2="326" class="threshold-line" />
+      <text x="744" y="103" class="svg-note dark">1,5x</text>
+      <path d="M735 314 C752 198, 777 235, 805 314 Z" class="tail-area" style="opacity:${tailOpacity}" />
+      <text x="625" y="344" class="axis-label">ratio posterior</text>
+      <text x="612" y="388" class="posterior-callout">P(ratio &gt; 1,5 | datos)</text>
+      <text x="612" y="414" class="posterior-callout strong">${posteriorLabel}</text>
+      <text x="612" y="438" class="svg-note dark">score ${decimal(row.score_bayes || 0, 1)} - ${text(row.nivel_bayes || "senal")}</text>
+    </svg>`;
+
+  if ($("realBayesCase")) {
+    $("realBayesCase").innerHTML = `
+      <strong>Caso real mostrado</strong>
+      <span>${text(shortLabel(row.articulo, 90))}</span>
+      <small>${text(shortLabel(row.entidad, 100))}</small>
+      <div class="real-case-metrics">
+        <b>${money(row.precio_promedio_ent)}</b><b>${money(row.precio_mediano)}</b><b>${decimal(ratio, 2)}x</b><b>${posteriorLabel}</b>
+        <em>precio observado</em><em>referencia</em><em>ratio</em><em>posterior</em>
+      </div>
+      <small>Pares publicados usados en la figura: ${formatNumber(points.length)}. Filtros activos: ${text(activeFilterSummary())}.</small>`;
+  }
+}
+
 function detailPeerRows(row) {
   const peers = detailPeers(row);
   if (!peers.length) {
@@ -767,6 +891,7 @@ function render() {
   renderBayesInsights();
   renderLevelChart();
   renderEntityChart();
+  renderRealBayesFigure();
   renderCards();
   renderPriceTable();
   renderConcentration();
@@ -779,6 +904,7 @@ function rerenderFilteredViews() {
   renderBayesInsights();
   renderLevelChart();
   renderEntityChart();
+  renderRealBayesFigure();
   renderCards();
   renderPriceTable();
   renderConcentration();
