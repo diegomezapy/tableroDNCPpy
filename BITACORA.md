@@ -129,6 +129,8 @@
 - Regeneracion ejecutada: `py -3 scripts/build_static_data.py`.
 - Validacion ejecutada: `node --check assets/app.js`.
 - Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
+- Commit main: `d0105f9`.
+- Commit gh-pages: `44c4cb0`.
 - Deployment Apps Script v0.1.6 creado: `AKfycbykTsry-BM_EVS5lhyt72BKMDJ4ayHEuGyIDzEYhhVXjjNqgeKxi0PsWafdS5_a0Cyc0w`.
 - Verificacion GAS: `GET /exec` del deployment v0.1.6 respondio `403 Prohibido`.
 - Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403.
