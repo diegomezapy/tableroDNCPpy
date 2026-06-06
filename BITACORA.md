@@ -185,3 +185,18 @@
 - Criterio: no borra el visitante registrado ni datos locales criticos, para no romper trazabilidad ni continuidad de uso.
 - Version actualizada: `APP_VERSION=0.1.6`; `DATA_VERSION` se mantiene en `dncp-cache-2025-ref-v3`.
 - Manual maestro actualizado: se agrego regla obligatoria para boton `Actualizar version` en toda app web publicada.
+
+### Correccion de superposicion en mini medidores
+
+- Problema reportado: en las tarjetas de `Senales principales`, las etiquetas `ratio` y `posterior` se superponian con el marcador vertical cuando el valor caia cerca del extremo derecho de la barra.
+- Causa: la etiqueta estaba posicionada dentro del mismo track del medidor y el marcador se dibujaba en la misma banda visual.
+- Correccion: el mini medidor ahora separa la etiqueta en una pildora superior y deja el marcador dentro del track inferior.
+- Version actualizada: `APP_VERSION=0.1.9`; cache del service worker `licitabayes-dncp-v0-1-9`.
+- Regeneracion ejecutada: `py -3 scripts\build_static_data.py`.
+- Validacion ejecutada: `node --check assets\app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts\build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion Playwright local: en `Construccion de cancha de futbol`, la caja de etiqueta y la caja del marcador devuelven `intersects=false`.
+- Deployment Apps Script v0.1.9 creado: `AKfycbz1TsUrLQRwCea1irQhqdNPMqsc4zM7Sbbc23-RQuldXNVWPuNHQymM8YwFafWS2FyBdw`.
+- Verificacion GAS: `GET /exec` del deployment v0.1.9 respondio `403 Prohibido`.
+- Commit main: pendiente de publicar.
+- Commit gh-pages: pendiente de publicar.
