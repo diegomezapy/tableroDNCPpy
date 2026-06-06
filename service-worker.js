@@ -1,4 +1,4 @@
-const CACHE_NAME = "licitabayes-dncp-v0-1-6";
+const CACHE_NAME = "licitabayes-dncp-v0-1-7";
 const APP_SHELL = [
   "./",
   "index.html",

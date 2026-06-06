@@ -158,6 +158,11 @@ p {
   gap: 10px;
 }
 
+.top-actions .secondary-btn,
+.top-actions .primary-link {
+  min-width: 118px;
+}
+
 .primary-btn,
 .secondary-btn,
 .nav-btn,
@@ -174,6 +179,7 @@ p {
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .primary-btn,
@@ -345,6 +351,86 @@ select option {
   margin-bottom: 18px;
 }
 
+.bayes-explainer {
+  display: grid;
+  grid-template-columns: minmax(260px, .9fr) minmax(320px, 1.35fr);
+  gap: 18px;
+  align-items: start;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f7f4 52%, #fff8e5 100%);
+}
+
+.bayes-intro h2 {
+  font-size: 25px;
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+
+.bayes-intro p:last-child {
+  color: #40556b;
+  line-height: 1.55;
+  margin-bottom: 0;
+}
+
+.bayes-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flow-step,
+.insight-card {
+  border: 1px solid #d6e5df;
+  border-radius: 8px;
+  background: rgba(255,255,255,.84);
+  padding: 12px;
+}
+
+.flow-step span {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--green-dark);
+  color: var(--white);
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.flow-step strong,
+.insight-card strong {
+  display: block;
+  color: var(--green-dark);
+}
+
+.flow-step small,
+.insight-card small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.35;
+  margin-top: 6px;
+}
+
+.insight-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.insight-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.insight-card strong {
+  font-size: 20px;
+  margin-top: 6px;
+}
+
 .tab-panel {
   display: none;
 }
@@ -462,6 +548,64 @@ select option {
   border-radius: 8px;
   padding: 14px;
   background: #fbfdfc;
+  border-left-width: 6px;
+  min-height: 245px;
+}
+
+.alert-card.critical { border-left-color: var(--red); }
+.alert-card.high { border-left-color: #d97706; }
+.alert-card.medium { border-left-color: var(--amber); }
+.alert-card.verify { border-left-color: #475569; }
+.alert-card.normal { border-left-color: var(--green); }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.card-top > span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.mini-bayes {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.mini-axis {
+  position: relative;
+  height: 26px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #dcebe5, #fff3c4, #f8cbc6);
+  overflow: hidden;
+}
+
+.mini-axis.posterior {
+  background: linear-gradient(90deg, #e8eef8, #cfe0ff, #f6c7cc);
+}
+
+.mini-axis span {
+  position: absolute;
+  top: 3px;
+  width: 5px;
+  height: 20px;
+  border-radius: 8px;
+  background: var(--green-dark);
+  transform: translateX(-50%);
+}
+
+.mini-axis small {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #1f2937;
 }
 
 .clickable-card,
@@ -528,6 +672,14 @@ td {
   vertical-align: top;
 }
 
+tbody tr {
+  background: var(--white);
+}
+
+tbody tr:nth-child(even) {
+  background: #fbfdfc;
+}
+
 th {
   position: sticky;
   top: 0;
@@ -535,6 +687,39 @@ th {
   color: var(--green-dark);
   z-index: 1;
 }
+
+.meter {
+  min-width: 116px;
+}
+
+.meter-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 5px;
+}
+
+.meter-head strong {
+  color: var(--green-dark);
+}
+
+.meter-track {
+  height: 9px;
+  border-radius: 8px;
+  background: #edf2ef;
+  overflow: hidden;
+}
+
+.meter-track div {
+  height: 100%;
+  background: var(--green);
+}
+
+.meter.critical .meter-track div { background: var(--red); }
+.meter.high .meter-track div { background: #d97706; }
+.meter.medium .meter-track div { background: var(--amber); }
 
 .network {
   min-height: 470px;
@@ -668,6 +853,77 @@ th {
   display: block;
 }
 
+.posterior-curve {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  display: block;
+  margin: 10px 0;
+}
+
+.posterior-curve line {
+  stroke: #8aa399;
+  stroke-width: 1.4;
+}
+
+.posterior-curve rect {
+  fill: rgba(180, 35, 24, .08);
+}
+
+.posterior-curve polyline {
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 3;
+}
+
+.posterior-curve circle {
+  fill: var(--red);
+}
+
+.posterior-curve text {
+  fill: #334155;
+  font-size: 12px;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.process-grid div {
+  border: 1px solid #d6e5df;
+  border-radius: 8px;
+  background: #fbfdfc;
+  padding: 12px;
+}
+
+.process-grid span {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--gold);
+  color: var(--green-dark);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.process-grid strong {
+  display: block;
+  color: var(--green-dark);
+  margin-bottom: 6px;
+}
+
+.process-grid p {
+  color: #40556b;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
 .formula-box {
   padding: 14px;
   border-radius: 8px;
@@ -724,8 +980,14 @@ th {
   .kpi-grid,
   .grid.two,
   .card-grid,
-  .detail-grid {
+  .detail-grid,
+  .bayes-explainer,
+  .insight-grid,
+  .process-grid {
     grid-template-columns: 1fr;
+  }
+  .bayes-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -749,6 +1011,9 @@ th {
   }
   .detail-kpis,
   .peer-bar-row {
+    grid-template-columns: 1fr;
+  }
+  .bayes-flow {
     grid-template-columns: 1fr;
   }
 }

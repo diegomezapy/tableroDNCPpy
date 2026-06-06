@@ -1,11 +1,13 @@
 const CONFIG = window.LICITABAYES_CONFIG || {};
 const VISITOR_KEY = "licitabayes_visitante_v1";
+const ADMIN_EMAIL = String(CONFIG.adminEmail || "dmeza.py@gmail.com").toLowerCase();
 
 const state = {
   summary: null,
   price: [],
   concentration: [],
   series: {},
+  visitor: null,
   tab: "resumen",
   level: "Todos",
   search: "",
@@ -61,6 +63,31 @@ function text(value) {
     '"': "&quot;",
     "'": "&#039;"
   }[ch]));
+}
+
+function normalizedEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isAdminVisitor(visitor = state.visitor) {
+  return normalizedEmail(visitor?.correo) === ADMIN_EMAIL;
+}
+
+function sheetUrl() {
+  return `https://docs.google.com/spreadsheets/d/${CONFIG.googleSheetId}/edit`;
+}
+
+function applyRole(visitor = state.visitor) {
+  const isAdmin = isAdminVisitor(visitor);
+  document.body.dataset.role = isAdmin ? "admin" : "visitor";
+  document.querySelectorAll(".admin-only").forEach((el) => {
+    el.hidden = !isAdmin;
+  });
+  document.querySelectorAll("[data-sheet-link]").forEach((el) => {
+    if (isAdmin) el.setAttribute("href", sheetUrl());
+    else el.removeAttribute("href");
+  });
+  if (!isAdmin && state.tab === "respaldo") setTab("resumen");
 }
 
 async function getJson(name) {
@@ -224,6 +251,45 @@ function posteriorFigure(row) {
     </svg>`;
 }
 
+function posteriorCurve(row) {
+  const ratio = Math.max(0.05, Number(row.ratio_observado || 1));
+  const low = Math.max(0.05, Number(row.intervalo_bajo || 0.8));
+  const high = Math.max(low + 0.05, Number(row.intervalo_alto || 1.2));
+  const threshold = 1.5;
+  const scale = (value) => Math.max(20, Math.min(330, 20 + (Math.min(value, 4) / 4) * 310));
+  const points = Array.from({ length: 42 }, (_, i) => {
+    const x = 20 + i * (320 / 41);
+    const center = scale(Math.min(ratio, 4));
+    const spread = Math.max(36, (scale(Math.min(high, 4)) - scale(Math.min(low, 4))) / 1.4);
+    const y = 118 - 78 * Math.exp(-Math.pow((x - center) / spread, 2));
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(" ");
+  return `
+    <svg class="posterior-curve" viewBox="0 0 360 150" role="img" aria-label="Curva posterior del ratio">
+      <line x1="20" y1="118" x2="340" y2="118"></line>
+      <rect x="${scale(threshold)}" y="24" width="${340 - scale(threshold)}" height="94" rx="6"></rect>
+      <polyline points="${points}"></polyline>
+      <circle cx="${scale(ratio)}" cy="42" r="5"></circle>
+      <text x="20" y="138">1,0x</text>
+      <text x="${scale(threshold) - 14}" y="138">1,5x</text>
+      <text x="${Math.min(286, scale(ratio) + 8)}" y="38">${decimal(ratio, 2)}x observado</text>
+      <text x="210" y="18">zona de revision</text>
+    </svg>`;
+}
+
+function bayesProcess(row) {
+  const evidence = Number(row.total_transacciones || 0);
+  const entities = Number(row.total_entidades || 0);
+  const shrink = evidence < 10 ? "alta" : evidence < 40 ? "media" : "baja";
+  return `
+    <div class="process-grid">
+      <div><span>1</span><strong>Referencia</strong><p>${money(row.precio_mediano)} para codigo ${text(row.codigo_catalogo)} y unidad ${text(row.unidad)}.</p></div>
+      <div><span>2</span><strong>Ratio</strong><p>${decimal(row.ratio_observado || 0, 2)}x = precio observado / referencia.</p></div>
+      <div><span>3</span><strong>Incertidumbre</strong><p>${formatNumber(evidence)} transacciones y ${formatNumber(entities)} entidades comparables; contraccion ${shrink}.</p></div>
+      <div><span>4</span><strong>Posterior</strong><p>${pct(row.prob_alta)} de superar 1,5x; intervalo ${decimal(row.intervalo_bajo || 0, 2)}x a ${decimal(row.intervalo_alto || 0, 2)}x.</p></div>
+    </div>`;
+}
+
 function peerFigure(row) {
   const peers = [row].concat(detailPeers(row)).slice(0, 8);
   const max = Math.max(...peers.map((peer) => Number(peer.precio_promedio_ent || 0)), 1);
@@ -350,14 +416,90 @@ function badge(level) {
   return `<span class="badge ${text(css)}">${text(level)}</span>`;
 }
 
+function riskTone(level) {
+  const clean = String(level || "Normal");
+  if (clean === "Critico") return "critical";
+  if (clean === "Alto") return "high";
+  if (clean === "Moderado") return "medium";
+  if (clean === "Verificar dato") return "verify";
+  return "normal";
+}
+
+function meter(label, value, note, tone = "normal") {
+  const width = Math.max(2, Math.min(100, Number(value || 0)));
+  return `
+    <div class="meter ${tone}">
+      <div class="meter-head"><span>${text(label)}</span><strong>${text(note)}</strong></div>
+      <div class="meter-track"><div style="width:${width}%"></div></div>
+    </div>`;
+}
+
+function probabilityMeter(prob) {
+  const n = Math.max(0, Math.min(1, Number(prob || 0)));
+  return meter("Probabilidad", n * 100, pct(n), n > 0.98 ? "critical" : n > 0.85 ? "high" : "medium");
+}
+
+function scoreMeter(score) {
+  const n = Math.max(0, Math.min(100, Number(score || 0)));
+  return meter("Score", n, decimal(n, 1), n > 85 ? "critical" : n > 65 ? "high" : "medium");
+}
+
+function ratioMeter(ratio) {
+  const n = Number(ratio || 0);
+  const capped = Math.min(100, Math.max(2, (Math.min(n, 4) / 4) * 100));
+  return meter("Ratio", capped, `${decimal(n, 2)}x`, n > 1.8 ? "critical" : n > 1.3 ? "high" : "normal");
+}
+
+function miniBayes(row) {
+  const ratio = Number(row.ratio_observado || 0);
+  const prob = Number(row.prob_alta || 0);
+  const ratioX = Math.max(8, Math.min(94, (Math.min(ratio, 4) / 4) * 100));
+  const probX = Math.max(8, Math.min(94, prob * 100));
+  return `
+    <div class="mini-bayes" aria-label="Resumen visual bayesiano">
+      <div class="mini-axis">
+        <span style="left:${ratioX}%"></span>
+        <small>ratio ${decimal(ratio, 2)}x</small>
+      </div>
+      <div class="mini-axis posterior">
+        <span style="left:${probX}%"></span>
+        <small>posterior ${pct(prob)}</small>
+      </div>
+    </div>`;
+}
+
+function renderBayesInsights() {
+  const rows = state.price || [];
+  const levels = state.summary?.price_stats?.levels || {};
+  const usable = Number(state.summary?.price_stats?.usable_rows || rows.length || 0);
+  const verify = Number(levels["Verificar dato"] || 0);
+  const critical = Number(levels.Critico || 0);
+  const highPosterior = rows.filter((row) => Number(row.prob_alta || 0) > 0.95).length;
+  const comparable = rows.filter((row) => !row.observacion_calidad).length;
+  $("bayesInsightGrid").innerHTML = [
+    ["Referencia limpia", `${formatNumber(comparable)} filas`, "codigo + unidad + pares entre entidades"],
+    ["Contraccion Bayes", "ruido controlado", "poca evidencia vuelve hacia ratio 1"],
+    ["Prob. > 1,5x", `${formatNumber(highPosterior)} publicadas`, "posterior alta para revision humana"],
+    ["Verificar dato", formatNumber(verify), "posible unidad, lote o catalogo no comparable"],
+    ["Critico", formatNumber(critical), "senal fuerte, no dictamen"],
+    ["Base usable", formatNumber(usable), "filas con referencia calculable"]
+  ].map(([label, value, note]) => `
+    <div class="insight-card">
+      <span>${text(label)}</span>
+      <strong>${text(value)}</strong>
+      <small>${text(note)}</small>
+    </div>`).join("");
+}
+
 function renderCards() {
   const rows = filteredPrice().slice(0, 12);
   $("alertCards").innerHTML = rows.map((row) => `
-    <article class="alert-card clickable-card" data-detail-hash="${text(row.hash_registro)}">
-      ${badge(row.nivel_bayes)}
+    <article class="alert-card clickable-card ${riskTone(row.nivel_bayes)}" data-detail-hash="${text(row.hash_registro)}">
+      <div class="card-top">${badge(row.nivel_bayes)}<span>#${formatNumber(row.rank || 0)}</span></div>
       <h3>${text(row.articulo)}</h3>
       <p>${text(row.entidad)}</p>
       <strong>${money(row.precio_promedio_ent)}</strong>
+      ${miniBayes(row)}
       <p>${row.observacion_calidad ? text(row.observacion_calidad) : `Referencia: ${money(row.precio_mediano)} · Prob.: ${pct(row.prob_alta)}`}</p>
       <button class="text-btn" type="button" data-detail-hash="${text(row.hash_registro)}">Ver detalle</button>
     </article>
@@ -372,14 +514,14 @@ function renderPriceTable() {
     <tr class="clickable-row" data-detail-hash="${text(row.hash_registro)}">
       <td>${row.rank}</td>
       <td>${badge(row.nivel_bayes)}</td>
-      <td>${pct(row.prob_alta)}</td>
-      <td>${decimal(row.score_bayes || 0, 1)}</td>
+      <td>${probabilityMeter(row.prob_alta)}</td>
+      <td>${scoreMeter(row.score_bayes)}</td>
       <td><strong>${text(row.articulo)}</strong><br><small>${text(row.codigo_catalogo)} · ${text(row.unidad)}</small></td>
       <td>${text(row.entidad)}</td>
       <td>${text(row.proveedor)}<br><small>${text(row.ruc)}</small></td>
       <td>${money(row.precio_promedio_ent)}</td>
       <td>${money(row.precio_mediano)}</td>
-      <td>${decimal(row.ratio_observado || 0, 2)}x</td>
+      <td>${ratioMeter(row.ratio_observado)}</td>
       <td>${text(row.observacion_calidad || row.referencia_usada || "")}</td>
     </tr>
   `).join("");
@@ -455,6 +597,8 @@ function renderDetail(row) {
 
       <section class="detail-card">
         <h3>Modelo bayesiano</h3>
+        ${bayesProcess(row)}
+        ${posteriorCurve(row)}
         ${posteriorFigure(row)}
       </section>
 
@@ -468,6 +612,7 @@ function renderDetail(row) {
 
     <section class="detail-card">
       <h3>Como se calculo</h3>
+      <p>La lectura no sale de una regla fija. Primero se arma una referencia comparable, luego se calcula el ratio observado y despues el modelo ajusta la incertidumbre segun cuanta evidencia comparable existe.</p>
       <div class="formula-box">
         ratio = precio observado / referencia = ${money(row.precio_promedio_ent)} / ${money(row.precio_mediano)} = ${decimal(row.ratio_observado || 0, 2)}x
       </div>
@@ -556,6 +701,14 @@ function renderDataQuality() {
 }
 
 function renderBackup() {
+  if (!isAdminVisitor()) {
+    $("backupInfo").textContent = JSON.stringify({
+      acceso: "solo_admin",
+      admin: ADMIN_EMAIL,
+      nota: "La planilla de respaldo no se muestra a visitantes. Drive mantiene permiso propietario para el admin."
+    }, null, 2);
+    return;
+  }
   $("backupInfo").textContent = JSON.stringify({
     spreadsheetId: CONFIG.googleSheetId,
     githubPagesUrl: CONFIG.githubPagesUrl,
@@ -567,6 +720,7 @@ function renderBackup() {
 
 function render() {
   renderKpis();
+  renderBayesInsights();
   renderLevelChart();
   renderEntityChart();
   renderCards();
@@ -583,6 +737,7 @@ function rerenderFilteredViews() {
 }
 
 function setTab(tab) {
+  if (tab === "respaldo" && !isAdminVisitor()) tab = "resumen";
   state.tab = tab;
   document.querySelectorAll(".nav-btn").forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tab));
   document.querySelectorAll(".tab-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `tab-${tab}`));
@@ -629,7 +784,7 @@ function visitorPayload(formData) {
     correo: String(formData.get("visitorEmail") || "").trim(),
     institucion: String(formData.get("visitorInstitution") || "").trim(),
     motivo: String(formData.get("visitorPurpose") || "").trim(),
-    app_version: CONFIG.appVersion || "0.1.5",
+    app_version: CONFIG.appVersion || "0.1.7",
     data_version: state.summary?.data_version || "",
     pagina: window.location.href,
     user_agent: navigator.userAgent || "",
@@ -659,20 +814,24 @@ function logVisit(visitor) {
 function setVisitorLabel(visitor) {
   if (!$("visitorLabel")) return;
   $("visitorLabel").textContent = visitor
-    ? `Visitante: ${visitor.nombre} - ${visitor.institucion}`
+    ? `${isAdminVisitor(visitor) ? "Admin" : "Visitante"}: ${visitor.nombre} - ${visitor.institucion}`
     : "Visitante no registrado";
 }
 
 function showVisitGate() {
+  state.visitor = null;
   $("visitGate").hidden = false;
   $("appShell").hidden = true;
   setVisitorLabel(null);
+  applyRole(null);
 }
 
 function showRegisteredApp(visitor) {
+  state.visitor = visitor;
   $("visitGate").hidden = true;
   $("appShell").hidden = false;
   setVisitorLabel(visitor);
+  applyRole(visitor);
 }
 
 function handleVisitSubmit(event) {

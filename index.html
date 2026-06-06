@@ -22,7 +22,7 @@
       <input id="visitorName" name="visitorName" type="text" autocomplete="name" required>
 
       <label for="visitorEmail">Correo</label>
-      <input id="visitorEmail" name="visitorEmail" type="email" autocomplete="email" placeholder="opcional">
+      <input id="visitorEmail" name="visitorEmail" type="email" autocomplete="email" placeholder="opcional; admin: dmeza.py@gmail.com">
 
       <label for="visitorInstitution">Institucion u organizacion</label>
       <input id="visitorInstitution" name="visitorInstitution" type="text" autocomplete="organization" required>
@@ -63,7 +63,7 @@
         <button class="nav-btn" type="button" data-tab="precios">Modelo Bayes</button>
         <button class="nav-btn" type="button" data-tab="concentracion">Concentracion</button>
         <button class="nav-btn" type="button" data-tab="datos">Datos</button>
-        <button class="nav-btn" type="button" data-tab="respaldo">Respaldo</button>
+        <button class="nav-btn admin-only" type="button" data-tab="respaldo">Respaldo</button>
         <button class="nav-btn" type="button" data-tab="metodologia">Metodologia</button>
       </nav>
 
@@ -140,7 +140,7 @@
         </div>
         <div class="top-actions">
           <button id="exportBtn" class="secondary-btn" type="button">Exportar CSV</button>
-          <a class="primary-link" target="_blank" rel="noreferrer" href="https://docs.google.com/spreadsheets/d/1QJ_xagB5ze4ugYIpOosYPHBsp-o7TfQM8W8FUYSUnmQ/edit">Hoja respaldo</a>
+          <a class="primary-link admin-only" data-sheet-link target="_blank" rel="noreferrer" href="#">Hoja respaldo</a>
         </div>
       </header>
 
@@ -165,6 +165,36 @@
 
       <section id="tab-resumen" class="tab-panel active">
         <div class="kpi-grid" id="kpiGrid"></div>
+        <article class="panel bayes-explainer">
+          <div class="bayes-intro">
+            <p class="eyebrow">Motor Bayes</p>
+            <h2>De precio observado a probabilidad de revision</h2>
+            <p>El panel no busca declarar irregularidades. Convierte precios comparables en una prioridad de auditoria: calcula un ratio, reduce el ruido cuando hay poca evidencia y estima la probabilidad posterior de que el precio sea atipico.</p>
+          </div>
+          <div class="bayes-flow">
+            <div class="flow-step">
+              <span>1</span>
+              <strong>Referencia comparable</strong>
+              <small>Codigo de catalogo + unidad + mediana entre entidades.</small>
+            </div>
+            <div class="flow-step">
+              <span>2</span>
+              <strong>Ratio observado</strong>
+              <small>Precio institucional dividido por referencia.</small>
+            </div>
+            <div class="flow-step">
+              <span>3</span>
+              <strong>Contraccion Bayes</strong>
+              <small>Si hay poca evidencia, el resultado vuelve hacia ratio 1.</small>
+            </div>
+            <div class="flow-step">
+              <span>4</span>
+              <strong>Probabilidad posterior</strong>
+              <small>Prioriza items con alta probabilidad de superar 1,5x.</small>
+            </div>
+          </div>
+          <div id="bayesInsightGrid" class="insight-grid"></div>
+        </article>
         <div class="grid two">
           <article class="panel">
             <div class="panel-head">
@@ -254,12 +284,12 @@
         </div>
       </section>
 
-      <section id="tab-respaldo" class="tab-panel">
+      <section id="tab-respaldo" class="tab-panel admin-only">
         <article class="panel">
           <h2>Respaldo Google Sheets + Apps Script</h2>
           <p>La planilla operativa guarda corridas del modelo, alertas publicadas, concentracion, snapshots, log, errores y versiones. Apps Script sincroniza desde los JSON publicados en GitHub Pages.</p>
           <div class="action-row">
-            <a class="primary-link" target="_blank" rel="noreferrer" href="https://docs.google.com/spreadsheets/d/1QJ_xagB5ze4ugYIpOosYPHBsp-o7TfQM8W8FUYSUnmQ/edit">Abrir planilla</a>
+            <a class="primary-link admin-only" data-sheet-link target="_blank" rel="noreferrer" href="#">Abrir planilla</a>
             <button id="downloadSnapshot" class="secondary-btn" type="button">Descargar snapshot JSON</button>
           </div>
           <pre id="backupInfo" class="code-box"></pre>
@@ -269,7 +299,8 @@
       <section id="tab-metodologia" class="tab-panel">
         <article class="panel prose">
           <h2>Metodologia del MVP</h2>
-          <p><strong>Modelo de precios:</strong> empirical Bayes log-normal sobre el ratio entre precio promedio pagado por una entidad y una referencia comparable por codigo y unidad. Se aplica contraccion hacia ratio 1 cuando hay poca evidencia.</p>
+          <p><strong>Modelo de precios:</strong> empirical Bayes log-normal sobre el ratio entre precio promedio pagado por una entidad y una referencia comparable por codigo y unidad. El ratio observado se transforma a escala logaritmica para que la comparacion sea estable, luego se aplica contraccion hacia ratio 1 cuando hay poca evidencia.</p>
+          <p><strong>Lectura bayesiana:</strong> la pregunta del modelo es concreta: dada la evidencia disponible y la incertidumbre de la referencia, que tan probable es que el precio institucional supere 1,5 veces el precio comparable. Por eso se muestra probabilidad, intervalo posterior y score.</p>
           <p><strong>Modelo de concentracion:</strong> suavizado bayesiano sobre participacion entidad-proveedor, combinando monto, cantidad de contratos y cantidad de proveedores comparables por entidad.</p>
           <p><strong>Interpretacion:</strong> el resultado es una prioridad de revision. No prueba intencionalidad ni irregularidad; orienta donde conviene mirar primero.</p>
         </article>
