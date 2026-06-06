@@ -110,4 +110,7 @@
 - Validacion ejecutada: `py -3 -m py_compile scripts/build_static_data.py dashboard.py downloader.py processor.py`.
 - Regeneracion ejecutada: `py -3 scripts/build_static_data.py`.
 - Validacion local Playwright: primer acceso muestra solo el registro obligatorio; con visitante guardado carga KPIs y alertas de la version `0.1.5`.
-- Pendiente GAS: desplegar version Apps Script v0.1.5 y autorizar manualmente si Google mantiene bloqueo 403.
+- Commit main de implementacion: `3e9d7b7`.
+- Deployment Apps Script v0.1.5 creado: `AKfycbyF7Z-QBLhtTnnezx8AJBLGbudPkQbGpEbjbBPjMxfYEW3i0NQMu7iZZi2peIIHdbuOgA`.
+- Verificacion GAS: `GET /exec` del deployment v0.1.5 respondio `403 Prohibido`.
+- Pendiente GAS: autorizar manualmente el endpoint si Google mantiene bloqueo 403 antes de escribir en la hoja `VISITAS`.

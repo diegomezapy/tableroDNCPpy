@@ -4,6 +4,6 @@ window.LICITABAYES_CONFIG = {
   dataBaseUrl: "data",
   githubPagesUrl: "https://diegomezapy.github.io/tableroDNCPpy/",
   googleSheetId: "1QJ_xagB5ze4ugYIpOosYPHBsp-o7TfQM8W8FUYSUnmQ",
-  gasEndpoint: "https://script.google.com/macros/s/AKfycbzF0hj24Wyw10yIse0QpS1UqYcYdhgpBDNeWWa8kHpTN2qzbzDeeBVFtUJscB4bs5wVaQ/exec",
+  gasEndpoint: "https://script.google.com/macros/s/AKfycbyF7Z-QBLhtTnnezx8AJBLGbudPkQbGpEbjbBPjMxfYEW3i0NQMu7iZZi2peIIHdbuOgA/exec",
   maxTableRows: 250
 };
