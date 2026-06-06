@@ -446,9 +446,9 @@ def process_all(years: list, force: bool = False):
     gc.collect()
     _process_contratos(years, force)
     gc.collect()
-    print("\n✅ Procesamiento completo. Ejecuta: streamlit run dashboard.py\n")
+    print("\n✅ Procesamiento completo. Ejecuta: py -3 scripts/build_static_data.py y publica index.html en GitHub Pages\n")
 
-    print("\n✅ Procesamiento completo. Ejecuta: streamlit run dashboard.py\n")
+    print("\n✅ Procesamiento completo. Ejecuta: py -3 scripts/build_static_data.py y publica index.html en GitHub Pages\n")
 
 
 # ─────────────────────────────────────────────────────────────────────────────

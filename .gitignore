@@ -1,7 +1,13 @@
 # Datos crudos descargados (pueden ser GBs)
-data/
+data/[0-9][0-9][0-9][0-9]/
+data/**/*.csv
+data/**/*.zip
 
-# Cache Parquet generado por processor.py — SE INCLUYE en git para Streamlit Cloud
+# Datos JSON publicados para GitHub Pages
+!data/
+!data/*.json
+
+# Cache Parquet generado por processor.py — SE INCLUYE en git para GitHub Pages
 # cache/
 
 # Entorno virtual Python

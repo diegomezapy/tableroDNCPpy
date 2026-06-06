@@ -1,86 +1,110 @@
-# 🇵🇾 Tablero de Contrataciones Públicas — DNCP Paraguay
+# LicitaBayes DNCP
 
-Proyecto Python para descargar, procesar y visualizar los datos abiertos de la **Dirección Nacional de Contrataciones Públicas (DNCP)** del Paraguay.
+App web estatica para explorar senales bayesianas en datos abiertos de contrataciones publicas de Paraguay.
 
-## 📦 Estructura del Proyecto
+La app no usa Streamlit. Se publica como sitio estatico en GitHub Pages y usa Google Sheets + Apps Script como respaldo operativo.
 
+## Objetivo
+
+Priorizar revision humana sobre:
+
+- precios institucionales atipicos por item de catalogo;
+- concentracion entidad-proveedor;
+- calidad y cobertura de datos usados por el modelo.
+
+Las alertas son senales estadisticas exploratorias. No constituyen denuncia, prueba de irregularidad ni dictamen legal.
+
+## Arquitectura
+
+```text
+index.html              App web estatica
+assets/                 CSS, JS y configuracion publica
+data/                   JSON publicados para GitHub Pages
+cache/                  Parquet procesados desde datos DNCP
+scripts/                Generadores reproducibles
+gas/                    Google Apps Script para respaldo en Sheets
+docs/                   Manuales y metodologia
 ```
-dncp-dashboard/
-├── downloader.py     # Descarga CSVs desde el portal de DNCP
-├── processor.py      # Limpieza y métricas con Pandas
-├── dashboard.py      # Tablero interactivo con Streamlit + Plotly
-├── requirements.txt  # Dependencias
-└── data/             # Directorio de datos (auto-creado)
-    └── {año}/
-        ├── convocatorias/   # CSVs de llamados/licitaciones
-        ├── adjudicaciones/  # CSVs de adjudicaciones
-        └── contratos/       # CSVs de contratos
-```
 
-## 🚀 Instalación y Uso Rápido
+## Datos
 
-### 1. Instalar dependencias
+Fuente: DNCP Paraguay, datos abiertos OCDS.
+
+URL: https://contrataciones.gov.py/datos
+
+Los Parquet incluidos en `cache/` alimentan el generador:
 
 ```bash
-pip install -r requirements.txt
+py -3 scripts/build_static_data.py
 ```
 
-### 2. Descargar datos
+Salidas publicadas:
+
+```text
+data/model_summary.json
+data/price_alerts.json
+data/concentration_alerts.json
+data/series.json
+```
+
+## Modelos MVP
+
+### Precio esperado
+
+Empirical Bayes log-normal sobre el ratio:
+
+```text
+precio promedio entidad / mediana interna del item
+```
+
+El modelo contrae resultados hacia ratio 1 cuando hay poca evidencia y calcula probabilidad posterior de precio alto.
+
+### Concentracion
+
+Suavizado tipo Dirichlet sobre participacion entidad-proveedor, combinando monto, cantidad de contratos y cantidad de proveedores por entidad.
+
+## Google Sheets
+
+Planilla de respaldo:
+
+https://docs.google.com/spreadsheets/d/1QJ_xagB5ze4ugYIpOosYPHBsp-o7TfQM8W8FUYSUnmQ/edit
+
+Apps Script:
+
+```text
+gas/Code.gs
+gas/Config.gs
+gas/SheetSchema.gs
+gas/Sync.gs
+```
+
+Despues de publicar GitHub Pages, ejecutar en Apps Script:
+
+```text
+ensureSchema_()
+syncFromGithub()
+```
+
+## Publicacion GitHub Pages
+
+El workflow `.github/workflows/pages.yml` publica la raiz del repo como sitio estatico.
+
+Si GitHub Pages no esta habilitado, activar Pages con fuente `GitHub Actions` en la configuracion del repositorio.
+
+## Validacion local
 
 ```bash
-# Años por defecto: 2023, 2024, 2025 — todos los módulos
-python downloader.py
-
-# Personalizar años y módulos
-python downloader.py --years 2024 2025 --modules convocatorias adjudicaciones
-
-# Forzar re-descarga
-python downloader.py --years 2025 --force
+py -3 -m py_compile dashboard.py downloader.py processor.py scripts/build_static_data.py
+py -3 scripts/build_static_data.py
+py -3 -m http.server 8765
 ```
 
-### 3. (Opcional) Verificar el procesamiento
+Abrir:
 
-```bash
-python processor.py
+```text
+http://127.0.0.1:8765/
 ```
 
-### 4. Abrir el tablero
+## Nota historica
 
-```bash
-streamlit run dashboard.py
-```
-
-El tablero se abrirá en `http://localhost:8501`
-
-## 📊 Módulos de Datos Disponibles
-
-| Módulo | Descripción | Cobertura |
-|---|---|---|
-| `convocatorias` | Llamados / licitaciones publicadas | 2010–2026 |
-| `adjudicaciones` | Procesos adjudicados a proveedores | 2010–2026 |
-| `contratos` | Contratos firmados | 2010–2026 |
-
-> **Fuente de datos:** Portal de Datos Abiertos de la DNCP — https://contrataciones.gov.py/datos  
-> **Licencia:** Creative Commons Attribution 4.0 Internacional (CC BY 4.0)  
-> **Estándar:** Open Contracting Data Standard (OCDS) — https://standard.open-contracting.org
-
-## 🖥️ Secciones del Tablero
-
-1. **Indicadores Generales (KPIs):** Total de llamados, montos estimados/adjudicados/contratados, proveedores y entidades únicas.
-2. **Convocatorias:** Evolución anual, top entidades públicas, distribución de modalidades.
-3. **Adjudicaciones:** Top proveedores por monto, evolución mensual, distribución por cantidad.
-4. **Contratos:** Estado de contratos, evolución mensual, monto total.
-5. **Filtros:** Por año, visibles desde el panel lateral.
-
-## 🔑 API Key (Opcional)
-
-Para usar la API REST con paginación (en lugar de la descarga masiva), podés registrar una aplicación en:  
-https://contrataciones.gov.py/datos/adm/aplicaciones
-
-Para la descarga masiva de CSV (lo que usa este proyecto), **no se necesita API key**.
-
-## 📋 Requisitos del Sistema
-
-- Python 3.10+
-- Conexión a internet para la descarga
-- ~500 MB de espacio por año descargado (aproximado)
+El proyecto original tenia tablero Streamlit. Esta version lo reemplaza por una app estatica publicable en GitHub Pages.

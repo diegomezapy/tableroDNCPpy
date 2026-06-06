@@ -1,0 +1,858 @@
+{
+  "run_id": "3cc34d1bfa57a526",
+  "generated_at": "2026-06-06T14:53:39.058542+00:00",
+  "convocatorias_anual": [
+    {
+      "anio": 2010,
+      "cantidad": 21,
+      "monto": 1935603287.0
+    },
+    {
+      "anio": 2011,
+      "cantidad": 12,
+      "monto": 3537117600.0
+    },
+    {
+      "anio": 2012,
+      "cantidad": 5,
+      "monto": 417398000.0
+    },
+    {
+      "anio": 2013,
+      "cantidad": 10,
+      "monto": 245825220747.0
+    },
+    {
+      "anio": 2014,
+      "cantidad": 6,
+      "monto": 57333447000.0
+    },
+    {
+      "anio": 2015,
+      "cantidad": 10,
+      "monto": 22238375844.0
+    },
+    {
+      "anio": 2016,
+      "cantidad": 23,
+      "monto": 2953942214262.0
+    },
+    {
+      "anio": 2017,
+      "cantidad": 38,
+      "monto": 2871757918655.0
+    },
+    {
+      "anio": 2018,
+      "cantidad": 43,
+      "monto": 2005912043895.0
+    },
+    {
+      "anio": 2019,
+      "cantidad": 86,
+      "monto": 8990726620126.0
+    },
+    {
+      "anio": 2020,
+      "cantidad": 97,
+      "monto": 7909660952418.0
+    },
+    {
+      "anio": 2021,
+      "cantidad": 192,
+      "monto": 7089483901046.0
+    },
+    {
+      "anio": 2022,
+      "cantidad": 627,
+      "monto": 16304976098276.0
+    },
+    {
+      "anio": 2023,
+      "cantidad": 1174,
+      "monto": 10179827677576.0
+    },
+    {
+      "anio": 2024,
+      "cantidad": 1651,
+      "monto": 25296443296198.0
+    },
+    {
+      "anio": 2025,
+      "cantidad": 8623,
+      "monto": 29014927561083.0
+    }
+  ],
+  "convocatorias_mensual": [
+    {
+      "mes": "2010-04",
+      "cantidad": 17,
+      "monto": 1640000000.0
+    },
+    {
+      "mes": "2010-07",
+      "cantidad": 1,
+      "monto": 20920000.0
+    },
+    {
+      "mes": "2010-08",
+      "cantidad": 2,
+      "monto": 94282907.0
+    },
+    {
+      "mes": "2010-12",
+      "cantidad": 1,
+      "monto": 180400380.0
+    },
+    {
+      "mes": "2011-03",
+      "cantidad": 1,
+      "monto": 1500000000.0
+    },
+    {
+      "mes": "2011-05",
+      "cantidad": 1,
+      "monto": 299997600.0
+    },
+    {
+      "mes": "2011-08",
+      "cantidad": 3,
+      "monto": 342000000.0
+    },
+    {
+      "mes": "2011-09",
+      "cantidad": 1,
+      "monto": 31600000.0
+    },
+    {
+      "mes": "2011-11",
+      "cantidad": 5,
+      "monto": 763520000.0
+    },
+    {
+      "mes": "2011-12",
+      "cantidad": 1,
+      "monto": 600000000.0
+    },
+    {
+      "mes": "2012-01",
+      "cantidad": 2,
+      "monto": 173920000.0
+    },
+    {
+      "mes": "2012-04",
+      "cantidad": 1,
+      "monto": 30000000.0
+    },
+    {
+      "mes": "2012-10",
+      "cantidad": 1,
+      "monto": 12000000.0
+    },
+    {
+      "mes": "2012-11",
+      "cantidad": 1,
+      "monto": 201478000.0
+    },
+    {
+      "mes": "2013-01",
+      "cantidad": 1,
+      "monto": 239623105263.0
+    },
+    {
+      "mes": "2013-02",
+      "cantidad": 1,
+      "monto": 404995500.0
+    },
+    {
+      "mes": "2013-03",
+      "cantidad": 1,
+      "monto": 49999996.0
+    },
+    {
+      "mes": "2013-07",
+      "cantidad": 2,
+      "monto": 151000000.0
+    },
+    {
+      "mes": "2013-08",
+      "cantidad": 2,
+      "monto": 934745988.0
+    },
+    {
+      "mes": "2013-09",
+      "cantidad": 2,
+      "monto": 3360000000.0
+    },
+    {
+      "mes": "2013-11",
+      "cantidad": 1,
+      "monto": 1301374000.0
+    },
+    {
+      "mes": "2014-05",
+      "cantidad": 1,
+      "monto": 80000000.0
+    },
+    {
+      "mes": "2014-07",
+      "cantidad": 2,
+      "monto": 160000000.0
+    },
+    {
+      "mes": "2014-08",
+      "cantidad": 1,
+      "monto": 560000000.0
+    },
+    {
+      "mes": "2014-10",
+      "cantidad": 1,
+      "monto": 30000000.0
+    },
+    {
+      "mes": "2014-12",
+      "cantidad": 1,
+      "monto": 56503447000.0
+    },
+    {
+      "mes": "2015-02",
+      "cantidad": 1,
+      "monto": 360000000.0
+    },
+    {
+      "mes": "2015-04",
+      "cantidad": 1,
+      "monto": 20000000.0
+    },
+    {
+      "mes": "2015-07",
+      "cantidad": 1,
+      "monto": 2326800000.0
+    },
+    {
+      "mes": "2015-08",
+      "cantidad": 3,
+      "monto": 6957574980.0
+    },
+    {
+      "mes": "2015-09",
+      "cantidad": 1,
+      "monto": 7056000000.0
+    },
+    {
+      "mes": "2015-10",
+      "cantidad": 1,
+      "monto": 25000000.0
+    },
+    {
+      "mes": "2015-11",
+      "cantidad": 2,
+      "monto": 5493000864.0
+    },
+    {
+      "mes": "2016-01",
+      "cantidad": 1,
+      "monto": 61600000000.0
+    },
+    {
+      "mes": "2016-02",
+      "cantidad": 1,
+      "monto": 330750000000.0
+    },
+    {
+      "mes": "2016-04",
+      "cantidad": 3,
+      "monto": 12343081911.0
+    },
+    {
+      "mes": "2016-06",
+      "cantidad": 2,
+      "monto": 456000000000.0
+    },
+    {
+      "mes": "2016-07",
+      "cantidad": 3,
+      "monto": 16857569566.0
+    },
+    {
+      "mes": "2016-08",
+      "cantidad": 3,
+      "monto": 107908785000.0
+    },
+    {
+      "mes": "2016-09",
+      "cantidad": 1,
+      "monto": 778280719303.0
+    }
+  ],
+  "adjudicaciones_anual": [
+    {
+      "anio": 2013,
+      "cantidad": 1,
+      "monto": 264300000000.0
+    },
+    {
+      "anio": 2014,
+      "cantidad": 2,
+      "monto": 29508054060.0
+    },
+    {
+      "anio": 2015,
+      "cantidad": 6,
+      "monto": 53644953358.0
+    },
+    {
+      "anio": 2016,
+      "cantidad": 19,
+      "monto": 1099391026758.0
+    },
+    {
+      "anio": 2017,
+      "cantidad": 210,
+      "monto": 3945155359879.0
+    },
+    {
+      "anio": 2018,
+      "cantidad": 276,
+      "monto": 1768368977551.0
+    },
+    {
+      "anio": 2019,
+      "cantidad": 362,
+      "monto": 7366653487330.0
+    },
+    {
+      "anio": 2020,
+      "cantidad": 918,
+      "monto": 6042960196015.0
+    },
+    {
+      "anio": 2021,
+      "cantidad": 1576,
+      "monto": 6693509336559.0
+    },
+    {
+      "anio": 2022,
+      "cantidad": 4161,
+      "monto": 13754869756616.0
+    },
+    {
+      "anio": 2023,
+      "cantidad": 6588,
+      "monto": 11712550069885.0
+    },
+    {
+      "anio": 2024,
+      "cantidad": 8619,
+      "monto": 21584826750276.0
+    },
+    {
+      "anio": 2025,
+      "cantidad": 18250,
+      "monto": 27377927862439.0
+    },
+    {
+      "anio": 2026,
+      "cantidad": 1,
+      "monto": 137404500.0
+    },
+    {
+      "anio": 2027,
+      "cantidad": 1,
+      "monto": 228408358.0
+    },
+    {
+      "anio": 2055,
+      "cantidad": 1,
+      "monto": 10090000000.0
+    }
+  ],
+  "adjudicaciones_mensual": [
+    {
+      "mes": "2013-02",
+      "cantidad": 1,
+      "monto": 264300000000.0
+    },
+    {
+      "mes": "2014-10",
+      "cantidad": 2,
+      "monto": 29508054060.0
+    },
+    {
+      "mes": "2015-06",
+      "cantidad": 1,
+      "monto": 46532617228.0
+    },
+    {
+      "mes": "2015-09",
+      "cantidad": 1,
+      "monto": 6032738130.0
+    },
+    {
+      "mes": "2015-11",
+      "cantidad": 4,
+      "monto": 1079598000.0
+    },
+    {
+      "mes": "2016-03",
+      "cantidad": 1,
+      "monto": 6659873000.0
+    },
+    {
+      "mes": "2016-05",
+      "cantidad": 1,
+      "monto": 26448559200.0
+    },
+    {
+      "mes": "2016-06",
+      "cantidad": 1,
+      "monto": 2259622316.0
+    },
+    {
+      "mes": "2016-10",
+      "cantidad": 6,
+      "monto": 163851058682.0
+    },
+    {
+      "mes": "2016-11",
+      "cantidad": 4,
+      "monto": 25959904887.0
+    },
+    {
+      "mes": "2016-12",
+      "cantidad": 6,
+      "monto": 874212008673.0
+    },
+    {
+      "mes": "2017-03",
+      "cantidad": 3,
+      "monto": 20426230600.0
+    },
+    {
+      "mes": "2017-04",
+      "cantidad": 1,
+      "monto": 1367400000.0
+    },
+    {
+      "mes": "2017-05",
+      "cantidad": 4,
+      "monto": 16912761599.0
+    },
+    {
+      "mes": "2017-06",
+      "cantidad": 21,
+      "monto": 563906448473.0
+    },
+    {
+      "mes": "2017-07",
+      "cantidad": 6,
+      "monto": 19703150346.0
+    },
+    {
+      "mes": "2017-08",
+      "cantidad": 29,
+      "monto": 146696349637.0
+    },
+    {
+      "mes": "2017-09",
+      "cantidad": 26,
+      "monto": 76346258936.0
+    },
+    {
+      "mes": "2017-10",
+      "cantidad": 7,
+      "monto": 473660716500.0
+    },
+    {
+      "mes": "2017-11",
+      "cantidad": 44,
+      "monto": 379960673045.0
+    },
+    {
+      "mes": "2017-12",
+      "cantidad": 69,
+      "monto": 2246175370743.0
+    },
+    {
+      "mes": "2018-01",
+      "cantidad": 53,
+      "monto": 427992022042.0
+    },
+    {
+      "mes": "2018-02",
+      "cantidad": 1,
+      "monto": 0.0
+    },
+    {
+      "mes": "2018-03",
+      "cantidad": 5,
+      "monto": 5798132206.0
+    },
+    {
+      "mes": "2018-04",
+      "cantidad": 27,
+      "monto": 144805640049.0
+    },
+    {
+      "mes": "2018-05",
+      "cantidad": 7,
+      "monto": 18721364944.0
+    },
+    {
+      "mes": "2018-06",
+      "cantidad": 7,
+      "monto": 8257942394.0
+    },
+    {
+      "mes": "2018-07",
+      "cantidad": 5,
+      "monto": 2855897536.0
+    },
+    {
+      "mes": "2018-08",
+      "cantidad": 71,
+      "monto": 86232554344.0
+    },
+    {
+      "mes": "2018-10",
+      "cantidad": 35,
+      "monto": 102028219587.0
+    },
+    {
+      "mes": "2018-11",
+      "cantidad": 50,
+      "monto": 590386331484.0
+    },
+    {
+      "mes": "2018-12",
+      "cantidad": 15,
+      "monto": 381290872965.0
+    },
+    {
+      "mes": "2019-01",
+      "cantidad": 3,
+      "monto": 51373208000.0
+    },
+    {
+      "mes": "2019-02",
+      "cantidad": 7,
+      "monto": 103381288790.0
+    },
+    {
+      "mes": "2019-03",
+      "cantidad": 13,
+      "monto": 652521406700.0
+    },
+    {
+      "mes": "2019-04",
+      "cantidad": 5,
+      "monto": 43217650611.0
+    },
+    {
+      "mes": "2019-05",
+      "cantidad": 8,
+      "monto": 76883604405.0
+    },
+    {
+      "mes": "2019-06",
+      "cantidad": 12,
+      "monto": 459516749483.0
+    },
+    {
+      "mes": "2019-07",
+      "cantidad": 34,
+      "monto": 688034063122.0
+    },
+    {
+      "mes": "2019-08",
+      "cantidad": 18,
+      "monto": 1721512709550.0
+    }
+  ],
+  "modalidades": [
+    {
+      "modalidad": "Menor cuantía nacional",
+      "cantidad": 7062
+    },
+    {
+      "modalidad": "Licitación Pública Nacional",
+      "cantidad": 3424
+    },
+    {
+      "modalidad": "Contratación Directa",
+      "cantidad": 581
+    },
+    {
+      "modalidad": "Concurso de Ofertas",
+      "cantidad": 474
+    },
+    {
+      "modalidad": "Subasta a la baja electrónica nacional",
+      "cantidad": 260
+    },
+    {
+      "modalidad": "Locación de Inmuebles",
+      "cantidad": 246
+    },
+    {
+      "modalidad": "CVE con difusión previa",
+      "cantidad": 127
+    },
+    {
+      "modalidad": "Licitación Pública Internacional",
+      "cantidad": 106
+    },
+    {
+      "modalidad": "Contratación por Excepción",
+      "cantidad": 75
+    },
+    {
+      "modalidad": "Licitación pública internacional",
+      "cantidad": 56
+    },
+    {
+      "modalidad": "BID - Licitación Internacional",
+      "cantidad": 47
+    },
+    {
+      "modalidad": "BID - Comparación de Precios",
+      "cantidad": 26
+    },
+    {
+      "modalidad": "Selección basada en la calidad y el costo",
+      "cantidad": 23
+    },
+    {
+      "modalidad": "Selección basada en la calidad y el costo ",
+      "cantidad": 23
+    },
+    {
+      "modalidad": "BID - Concurso de Ofertas (CO/CP)",
+      "cantidad": 14
+    },
+    {
+      "modalidad": "Menor cuantía internacional",
+      "cantidad": 13
+    },
+    {
+      "modalidad": "Selección basada en las calificaciones de los consultores ",
+      "cantidad": 12
+    },
+    {
+      "modalidad": "Acuerdo nacional",
+      "cantidad": 11
+    },
+    {
+      "modalidad": "Especiales\tSubasta a la baja electrónica internacional",
+      "cantidad": 10
+    },
+    {
+      "modalidad": "BM - Licitación Pública Nacional - LPN",
+      "cantidad": 8
+    }
+  ],
+  "top_entidades": [
+    {
+      "entidad": "Ministerio de Salud Pública y Bienestar Social (MSPBS)",
+      "cantidad": 800
+    },
+    {
+      "entidad": "Instituto de Previsión Social (IPS)",
+      "cantidad": 500
+    },
+    {
+      "entidad": "Ministerio de Obras Públicas y Comunicaciones (MOPC)",
+      "cantidad": 294
+    },
+    {
+      "entidad": "Administración Nacional de Electricidad (ANDE)",
+      "cantidad": 263
+    },
+    {
+      "entidad": "Corte Suprema de Justicia (CSJ)",
+      "cantidad": 255
+    },
+    {
+      "entidad": "Banco Nacional de Fomento (BNF)",
+      "cantidad": 249
+    },
+    {
+      "entidad": "Dirección Nacional de Aeronáutica Civil (DINAC)",
+      "cantidad": 229
+    },
+    {
+      "entidad": "Facultad de Ciencias Medicas / Universidad Nacional de Asunción",
+      "cantidad": 169
+    },
+    {
+      "entidad": "Banco Central del Paraguay (BCP)",
+      "cantidad": 154
+    },
+    {
+      "entidad": "Petróleos Paraguayos (PETROPAR)",
+      "cantidad": 152
+    },
+    {
+      "entidad": "Municipalidad de Asunción",
+      "cantidad": 121
+    },
+    {
+      "entidad": "Empresa de Servicios Sanitarios del Paraguay (ESSAP)",
+      "cantidad": 118
+    },
+    {
+      "entidad": "Instituto Nacional del Cancer / Ministerio de Salud Pública y Bienestar Social",
+      "cantidad": 117
+    },
+    {
+      "entidad": "Servicio Nacional de Calidad y Salud Animal (SENACSA)",
+      "cantidad": 112
+    },
+    {
+      "entidad": "Ministerio de Agricultura y Ganadería (MAG)",
+      "cantidad": 108
+    },
+    {
+      "entidad": "Ministerio Público - Fiscalía (FGE)",
+      "cantidad": 107
+    },
+    {
+      "entidad": "Dirección Nacional de Contrataciones Públicas (DNCP)",
+      "cantidad": 106
+    },
+    {
+      "entidad": "Ministerio de Educación y Ciencias (MEC)",
+      "cantidad": 105
+    },
+    {
+      "entidad": "Municipalidad de Luque",
+      "cantidad": 105
+    },
+    {
+      "entidad": "Industria Nacional del Cemento (INC)",
+      "cantidad": 101
+    }
+  ],
+  "top_proveedores": [
+    {
+      "proveedor": "CASA BOLLER S.A.",
+      "monto": 2753685084263.0,
+      "cantidad": 79,
+      "ruc": "80001556-8"
+    },
+    {
+      "proveedor": "Trafigura Pte Ltd",
+      "monto": 2408892848542.0,
+      "cantidad": 7,
+      "ruc": ""
+    },
+    {
+      "proveedor": "QUIMFA S.A.",
+      "monto": 2199413118841.0,
+      "cantidad": 189,
+      "ruc": "80074991-0"
+    },
+    {
+      "proveedor": "COMEPAR S.A.",
+      "monto": 2002011310875.0,
+      "cantidad": 2,
+      "ruc": "80017044-0"
+    },
+    {
+      "proveedor": "LADERO PARAGUAYO S.A.",
+      "monto": 1843446237066.0,
+      "cantidad": 26,
+      "ruc": "80018240-5"
+    },
+    {
+      "proveedor": "INDEX S.A.C.I.",
+      "monto": 1758645158354.0,
+      "cantidad": 144,
+      "ruc": "80002742-6"
+    },
+    {
+      "proveedor": "LABORATORIO DE PRODUCTOS ÉTICOS COMERCIAL E INDUSTRIAL S.A.",
+      "monto": 1554432076188.0,
+      "cantidad": 91,
+      "ruc": "80000146-0"
+    },
+    {
+      "proveedor": "DISTRIBUIDORA LA POLICLINICA S. A.",
+      "monto": 1542425362629.0,
+      "cantidad": 136,
+      "ruc": "80025906-8"
+    },
+    {
+      "proveedor": "PROSALUD FARMA S.A.",
+      "monto": 1526324185745.0,
+      "cantidad": 189,
+      "ruc": "80033584-8"
+    },
+    {
+      "proveedor": "CONSORCIO MEDICINA PROFESIONAL TECNOLOGICA - MEPROTEC",
+      "monto": 1420160750000.0,
+      "cantidad": 4,
+      "ruc": "80108024-0"
+    },
+    {
+      "proveedor": "TOCSA S.A.",
+      "monto": 1319657442197.0,
+      "cantidad": 7,
+      "ruc": "80019114-5"
+    },
+    {
+      "proveedor": "VICENTE SCAVONE & CIA. S.A.E",
+      "monto": 1299890611926.0,
+      "cantidad": 247,
+      "ruc": "80001446-4"
+    },
+    {
+      "proveedor": "SCAVONE HERMANOS SA",
+      "monto": 1241135724596.0,
+      "cantidad": 182,
+      "ruc": "80001916-4"
+    },
+    {
+      "proveedor": "G T SCIENTIFIC S.A.",
+      "monto": 1209215990638.0,
+      "cantidad": 152,
+      "ruc": "80000084-6"
+    },
+    {
+      "proveedor": "INFOTEC SA",
+      "monto": 976186289730.0,
+      "cantidad": 69,
+      "ruc": "80021897-3"
+    },
+    {
+      "proveedor": "Medicina por Imágenes Paraguay (MEDIMAP)",
+      "monto": 970000000000.0,
+      "cantidad": 3,
+      "ruc": "80148891-5"
+    },
+    {
+      "proveedor": "CONSORCIO AVANZA CHACO",
+      "monto": 908554503396.0,
+      "cantidad": 2,
+      "ruc": "80113485-4"
+    },
+    {
+      "proveedor": "EUROQUIMICA S.A.",
+      "monto": 867941709092.0,
+      "cantidad": 174,
+      "ruc": "80061211-6"
+    },
+    {
+      "proveedor": "ECOMIPA S.A.",
+      "monto": 813021729765.0,
+      "cantidad": 6,
+      "ruc": "80002947-0"
+    },
+    {
+      "proveedor": "BIOANALISIS SRL",
+      "monto": 801467516339.0,
+      "cantidad": 43,
+      "ruc": "80024150-9"
+    }
+  ]
+}
