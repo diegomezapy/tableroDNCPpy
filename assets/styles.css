@@ -573,39 +573,64 @@ select option {
 
 .mini-bayes {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   margin: 12px 0;
 }
 
 .mini-axis {
   position: relative;
-  height: 26px;
+  height: 34px;
+  border-radius: 8px;
+  background: transparent;
+  overflow: visible;
+}
+
+.mini-axis::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16px;
   border-radius: 8px;
   background: linear-gradient(90deg, #dcebe5, #fff3c4, #f8cbc6);
-  overflow: hidden;
 }
 
 .mini-axis.posterior {
+  background: transparent;
+}
+
+.mini-axis.posterior::before {
   background: linear-gradient(90deg, #e8eef8, #cfe0ff, #f6c7cc);
 }
 
 .mini-axis span {
   position: absolute;
-  top: 3px;
+  bottom: 2px;
   width: 5px;
-  height: 20px;
+  height: 12px;
   border-radius: 8px;
   background: var(--green-dark);
   transform: translateX(-50%);
+  z-index: 2;
 }
 
 .mini-axis small {
-  position: absolute;
-  right: 8px;
-  top: 6px;
+  position: relative;
+  z-index: 3;
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.06);
   font-size: 11px;
+  line-height: 16px;
   font-weight: 800;
   color: #1f2937;
+  white-space: nowrap;
 }
 
 .clickable-card,
