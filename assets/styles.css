@@ -377,6 +377,28 @@ select option {
   gap: 10px;
 }
 
+.public-value-strip {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(170px, .35fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #d4b15a;
+  border-radius: 8px;
+  background: #fff8e5;
+  padding: 13px 14px;
+}
+
+.public-value-strip strong {
+  color: var(--green-dark);
+  font-size: 16px;
+}
+
+.public-value-strip span {
+  color: #4d3a09;
+  line-height: 1.45;
+}
+
 .flow-step,
 .insight-card {
   border: 1px solid #d6e5df;
@@ -924,6 +946,146 @@ th {
   margin-top: 14px;
 }
 
+.citizen-impact {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 42%, #fff8e5 100%);
+  border-color: #d9e7ef;
+}
+
+.citizen-impact-head {
+  max-width: 980px;
+  margin-bottom: 16px;
+}
+
+.citizen-impact-head h2 {
+  font-size: clamp(22px, 2.6vw, 32px);
+  margin-bottom: 8px;
+}
+
+.impact-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.impact-figure {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(145px, 1fr) 34px minmax(190px, 1.12fr) 34px minmax(145px, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid #cfe0dc;
+  border-radius: 8px;
+  background: #fbfdfc;
+  padding: 14px;
+}
+
+.impact-node,
+.impact-center,
+.impact-outcomes div {
+  border: 1px solid #d6e5df;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 13px;
+}
+
+.impact-node span,
+.impact-center span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.impact-node span {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+
+.impact-center {
+  background: #10251b;
+  color: #e8fff2;
+  border-color: #10251b;
+  text-align: center;
+  box-shadow: 0 16px 32px rgba(16, 37, 27, .16);
+}
+
+.impact-center span {
+  background: var(--gold);
+  color: #172014;
+  margin-bottom: 8px;
+}
+
+.impact-node strong,
+.impact-center strong,
+.impact-outcomes strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--green-dark);
+}
+
+.impact-center strong {
+  color: #ffffff;
+  font-size: 20px;
+}
+
+.impact-node small,
+.impact-center small,
+.impact-outcomes small {
+  display: block;
+  color: #526274;
+  line-height: 1.45;
+  margin-top: 6px;
+}
+
+.impact-center small {
+  color: #c8ead8;
+}
+
+.impact-node.action {
+  border-color: #b9d3f8;
+  background: #f6f9ff;
+}
+
+.impact-connector {
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+}
+
+.impact-outcomes {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.impact-outcomes div {
+  background: #ffffff;
+  border-left: 5px solid var(--gold);
+}
+
+.citizen-table-wrap {
+  margin: 0;
+}
+
+.citizen-table {
+  min-width: 760px;
+}
+
+.citizen-table th {
+  background: #10251b;
+  color: #e8fff2;
+}
+
+.citizen-table td {
+  vertical-align: top;
+  line-height: 1.45;
+}
+
 .method-columns {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1166,12 +1328,22 @@ th {
   .process-grid,
   .methodology-hero,
   .methodology-grid,
+  .impact-layout,
   .method-columns,
   .reference-grid {
     grid-template-columns: 1fr;
   }
   .bayes-flow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .impact-figure {
+    grid-template-columns: 1fr;
+  }
+  .impact-connector {
+    width: 6px;
+    height: 24px;
+    justify-self: center;
+    background: linear-gradient(180deg, var(--green), var(--gold));
   }
 }
 
@@ -1199,5 +1371,50 @@ th {
   }
   .bayes-flow {
     grid-template-columns: 1fr;
+  }
+  .public-value-strip,
+  .impact-outcomes {
+    grid-template-columns: 1fr;
+  }
+  .impact-figure {
+    padding: 10px;
+  }
+  .citizen-table-wrap {
+    overflow: visible;
+  }
+  .citizen-table {
+    min-width: 0;
+  }
+  .citizen-table,
+  .citizen-table tbody,
+  .citizen-table tr,
+  .citizen-table td {
+    display: block;
+    width: 100%;
+  }
+  .citizen-table thead {
+    display: none;
+  }
+  .citizen-table tr {
+    border: 1px solid #d6e5df;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background: #ffffff;
+  }
+  .citizen-table td {
+    border-bottom: 1px solid #e6eeeb;
+  }
+  .citizen-table td:last-child {
+    border-bottom: 0;
+  }
+  .citizen-table td::before {
+    content: attr(data-label);
+    display: block;
+    color: var(--green-dark);
+    font-size: 11px;
+    font-weight: 900;
+    text-transform: uppercase;
+    margin-bottom: 5px;
   }
 }

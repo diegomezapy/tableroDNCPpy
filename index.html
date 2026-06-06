@@ -193,6 +193,10 @@
               <small>Prioriza items con alta probabilidad de superar 1,5x.</small>
             </div>
           </div>
+          <div class="public-value-strip">
+            <strong>Aporte ciudadano central</strong>
+            <span>Bayes convierte datos abiertos masivos en una cola explicable de revision: muestra donde mirar primero, por que mirar ahi y cuanta incertidumbre tiene la senal.</span>
+          </div>
           <div id="bayesInsightGrid" class="insight-grid"></div>
         </article>
         <div class="grid two">
@@ -307,6 +311,80 @@
             <div><span>Pregunta</span><strong>Que tan atipico es este precio?</strong></div>
             <div><span>Evidencia</span><strong>Items, unidades, entidades y transacciones comparables</strong></div>
             <div><span>Salida</span><strong>Probabilidad posterior, score e intervalo</strong></div>
+          </div>
+        </article>
+
+        <article class="panel methodology-wide citizen-impact">
+          <div class="citizen-impact-head">
+            <p class="eyebrow">Aporte a la ciudadania</p>
+            <h2>La idea central: pasar de muchos datos sueltos a vigilancia publica priorizada</h2>
+            <p>El valor del enfoque bayesiano no es reemplazar auditorias. Su aporte es ordenar la atencion publica con evidencia, incertidumbre y trazabilidad: primero aparecen los casos donde la senal estadistica es mas fuerte y mas explicable.</p>
+          </div>
+          <div class="impact-layout">
+            <figure class="impact-figure" aria-label="Flujo del aporte ciudadano de LicitaBayes">
+              <div class="impact-node source">
+                <span>1</span>
+                <strong>Datos abiertos DNCP</strong>
+                <small>Millones de items, montos, entidades, proveedores y unidades.</small>
+              </div>
+              <div class="impact-connector" aria-hidden="true"></div>
+              <div class="impact-center">
+                <span>Bayes</span>
+                <strong>Prioriza con incertidumbre</strong>
+                <small>Combina referencia, evidencia, contraccion e intervalo posterior.</small>
+              </div>
+              <div class="impact-connector" aria-hidden="true"></div>
+              <div class="impact-node action">
+                <span>2</span>
+                <strong>Revision ciudadana enfocada</strong>
+                <small>Fichas claras para mirar primero lo mas relevante, no lo mas ruidoso.</small>
+              </div>
+              <div class="impact-outcomes">
+                <div><strong>Transparencia</strong><small>cada alerta explica ratio, referencia y probabilidad.</small></div>
+                <div><strong>Equidad</strong><small>se evita acusar cuando la comparacion o la unidad son dudosas.</small></div>
+                <div><strong>Eficiencia</strong><small>periodistas, academia y control revisan una cola ordenada.</small></div>
+                <div><strong>Rendicion</strong><small>las entidades pueden responder con datos y documentos.</small></div>
+              </div>
+            </figure>
+
+            <div class="table-wrap citizen-table-wrap">
+              <table class="citizen-table">
+                <thead>
+                  <tr>
+                    <th>Problema publico</th>
+                    <th>Aporte bayesiano</th>
+                    <th>Que ve el usuario</th>
+                    <th>Uso ciudadano responsable</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td data-label="Problema publico">Hay demasiados contratos para revisar manualmente.</td>
+                    <td data-label="Aporte bayesiano">Convierte el universo en una cola priorizada por probabilidad posterior y score.</td>
+                    <td data-label="Que ve el usuario">Ranking, tarjetas criticas y fichas por item.</td>
+                    <td data-label="Uso ciudadano responsable">Mirar primero los casos con mayor senal y mayor monto publico.</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Problema publico">Un precio alto puede ser ruido, unidad distinta o alcance distinto.</td>
+                    <td data-label="Aporte bayesiano">Contrae senales con poca evidencia y separa casos <code>Verificar dato</code>.</td>
+                    <td data-label="Que ve el usuario">Referencia, ratio, intervalo y advertencias de calidad.</td>
+                    <td data-label="Uso ciudadano responsable">No afirmar irregularidad antes de revisar pliego, unidad y documentos.</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Problema publico">Las decisiones publicas necesitan explicaciones, no cajas negras.</td>
+                    <td data-label="Aporte bayesiano">Expone formula, variables y probabilidad con incertidumbre visible.</td>
+                    <td data-label="Que ve el usuario">Detalle calculado, pares comparables y lectura metodologica.</td>
+                    <td data-label="Uso ciudadano responsable">Hacer preguntas verificables a instituciones y proveedores.</td>
+                  </tr>
+                  <tr>
+                    <td data-label="Problema publico">La ciudadania necesita evidencia accionable, no sospechas dispersas.</td>
+                    <td data-label="Aporte bayesiano">Une datos abiertos, modelo y trazabilidad en una ficha compartible.</td>
+                    <td data-label="Que ve el usuario">Enlaces directos a metodologia y detalle del item.</td>
+                    <td data-label="Uso ciudadano responsable">Comunicar hallazgos como prioridades de revision, no como sentencia.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </article>
 
