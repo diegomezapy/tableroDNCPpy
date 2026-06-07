@@ -299,5 +299,5 @@
 - Validacion Playwright local: version visible `0.1.15`; tabla de precios muestra columna `Accion`; primer chip `Investigacion sugerida`; ficha de detalle muestra `RESPUESTA SUGERIDA` y cautela `No declara irregularidad`; Metodologia muestra panel `De pescar patrones a capturar casos revisables`; referencia De Michele/Vieyra visible.
 - Deployment Apps Script v0.1.15 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @6.
 - Verificacion GAS: `GET /exec` del deployment v0.1.15 respondio `403 Forbidden`.
-- Commit main: `pendiente`.
-- Commit gh-pages: `pendiente`.
+- Commit main: `21f8d9b`.
+- Commit gh-pages: `5eff093`.
