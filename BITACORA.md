@@ -284,3 +284,20 @@
 - Pendiente GAS: autorizar scopes y confirmar acceso del deployment desde la UI de Apps Script si se requiere API publica.
 - Commit main: `a1242f1`.
 - Commit gh-pages: `2d14684`.
+
+### Red flags accionables BID/DNCP
+
+- Problema reportado: incorporar en la app las ideas de `From Fishing to Catching` para que las senales no sean solo scores bayesianos, sino red flags accionables.
+- Referencia agregada en UI: De Michele y Vieyra (2022), BID/DNCP, `From Fishing to Catching: Developing Actionable Red Flags in Public Procurement to Prevent and Control Corruption`.
+- Mejora en fichas de detalle: se agrego bloque `Red flag accionable` con familia, etapa del ciclo, regla operativa, evidencia, nivel de amenaza, respuesta sugerida, responsable, estado, fuente y cautela.
+- Mejora en tarjetas principales y tabla de precios: se agrego chip de accionabilidad (`Investigacion sugerida`, `Observacion prioritaria`, `Alerta`, `Observacion`, `Observacion de datos` segun caso).
+- Mejora en Metodologia: se agrego panel `De pescar patrones a capturar casos revisables`, con flujo senal -> ficha -> respuesta -> feedback y matriz de familias de alertas.
+- Version actualizada: `APP_VERSION=0.1.15`; cache del service worker `licitabayes-dncp-v0-1-15`.
+- Regeneracion ejecutada: `py -3 scripts\build_static_data.py`.
+- Validacion ejecutada: `node --check assets\app.js`.
+- Validacion ejecutada: `py -3 -m py_compile scripts\build_static_data.py dashboard.py downloader.py processor.py`.
+- Validacion Playwright local: version visible `0.1.15`; tabla de precios muestra columna `Accion`; primer chip `Investigacion sugerida`; ficha de detalle muestra `RESPUESTA SUGERIDA` y cautela `No declara irregularidad`; Metodologia muestra panel `De pescar patrones a capturar casos revisables`; referencia De Michele/Vieyra visible.
+- Deployment Apps Script v0.1.15 en GAS asociado: `AKfycbzweRdG2sBKnIDSnj7GFaBRT3YAeKgOylce8CXuHZ5bH-tNltwHpweT1AB1K7VGKhmb` @6.
+- Verificacion GAS: `GET /exec` del deployment v0.1.15 respondio `403 Forbidden`.
+- Commit main: `pendiente`.
+- Commit gh-pages: `pendiente`.

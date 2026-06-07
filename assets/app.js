@@ -172,6 +172,101 @@ function explainLevel(row) {
   return "No presenta una senal alta en el ranking publicado.";
 }
 
+function actionableFlag(row) {
+  const level = row.nivel_bayes || "Normal";
+  const ratio = ratioValue(row);
+  const qualityIssue = Boolean(row.observacion_calidad) || level === "Verificar dato";
+  const highEvidence = Number(row.total_transacciones || 0) >= 20 && Number(row.total_entidades || 0) >= 4;
+  const stage = "Adjudicacion / contrato publicado";
+  const family = qualityIssue ? "Calidad de referencia" : "Precio atipico respecto a referencia comparable";
+  const rule = qualityIssue
+    ? "Referencia posiblemente no comparable: revisar catalogo, unidad, descripcion y alcance antes de interpretar el precio."
+    : "Precio institucional con ratio posterior elevado frente a una referencia historica comparable por codigo y unidad.";
+  let threat = "Observacion";
+  let response = "Revisar por muestreo y conservar como seguimiento.";
+  let responsible = "Ciudadania tecnica / equipo de datos";
+  let status = "Nueva";
+
+  if (qualityIssue) {
+    threat = "Observacion de datos";
+    response = "Validar unidad, catalogo, descripcion, lote y alcance; no usar como alerta sustantiva hasta corregir comparabilidad.";
+    responsible = "Equipo de datos / entidad convocante";
+  } else if (level === "Critico" && highEvidence) {
+    threat = "Investigacion sugerida";
+    response = "Revisar pliego, contrato, especificaciones, cantidades, proveedor y pares; solicitar descargo documental si corresponde.";
+    responsible = "Verificador, auditor o ciudadania especializada";
+  } else if (level === "Critico") {
+    threat = "Observacion prioritaria";
+    response = "Verificar evidencia comparable antes de escalar; contrastar con documentos originales.";
+    responsible = "Ciudadania especializada / equipo de datos";
+  } else if (level === "Alto") {
+    threat = "Alerta";
+    response = "Comparar especificaciones, lote, forma de pago y condiciones de entrega.";
+    responsible = "Analista ciudadano / entidad";
+  } else if (level === "Moderado") {
+    threat = "Observacion";
+    response = "Monitorear o revisar por muestreo, priorizando monto e impacto publico.";
+    responsible = "Ciudadania / analista";
+  }
+
+  return {
+    family,
+    stage,
+    rule,
+    threat,
+    response,
+    responsible,
+    status,
+    matrixLevel: qualityIssue ? "Verificar dato" : level,
+    evidence: [
+      `ratio ${decimal(ratio, 2)}x`,
+      `posterior ${pct(row.prob_alta)}`,
+      `${formatNumber(row.total_transacciones)} transacciones`,
+      `${formatNumber(row.total_entidades)} entidades`
+    ],
+    source: "Datos abiertos DNCP/OCDS y referencia historica de LicitaBayes",
+    caveat: "No declara irregularidad ni sancion; ordena una revision verificable."
+  };
+}
+
+function actionabilityChip(row) {
+  const action = actionableFlag(row);
+  return `<span class="action-chip ${riskTone(row.nivel_bayes)}">${text(action.threat)}</span>`;
+}
+
+function actionabilityMini(row) {
+  const action = actionableFlag(row);
+  return `
+    <div class="action-mini">
+      ${actionabilityChip(row)}
+      <small>${text(action.response)}</small>
+    </div>`;
+}
+
+function actionabilityTable(row) {
+  const action = actionableFlag(row);
+  const rows = [
+    ["Alerta", action.family],
+    ["Etapa del ciclo", action.stage],
+    ["Regla operativa", action.rule],
+    ["Evidencia", action.evidence.join(" | ")],
+    ["Nivel de amenaza", action.threat],
+    ["Respuesta sugerida", action.response],
+    ["Responsable sugerido", action.responsible],
+    ["Estado", action.status],
+    ["Fuente", action.source],
+    ["Cautela", action.caveat]
+  ];
+  return `
+    <div class="table-wrap mini actionability-table">
+      <table>
+        <tbody>
+          ${rows.map(([key, value]) => `<tr><td>${text(key)}</td><td>${text(value)}</td></tr>`).join("")}
+        </tbody>
+      </table>
+    </div>`;
+}
+
 function detailPeers(row) {
   return state.price
     .filter((peer) => peer.hash_registro !== row.hash_registro)
@@ -668,6 +763,7 @@ function renderCards() {
       <p>${text(row.entidad)}</p>
       <strong>${money(row.precio_promedio_ent)}</strong>
       ${miniBayes(row)}
+      ${actionabilityMini(row)}
       <p>${row.observacion_calidad ? text(row.observacion_calidad) : `Referencia: ${money(row.precio_mediano)} - Prob.: ${pct(row.prob_alta)}`}</p>
       <button class="text-btn" type="button" data-detail-hash="${text(row.hash_registro)}">Ver detalle</button>
     </article>
@@ -690,6 +786,7 @@ function renderPriceTable() {
       <td>${money(row.precio_promedio_ent)}</td>
       <td>${money(row.precio_mediano)}</td>
       <td>${ratioMeter(row.ratio_observado)}</td>
+      <td>${actionabilityChip(row)}</td>
       <td>${text(row.observacion_calidad || row.referencia_usada || "")}</td>
     </tr>
   `).join("");
@@ -777,6 +874,23 @@ function renderDetail(row) {
         <p>Este semaforo no reemplaza el dictamen tecnico; sirve para orientar la revision junto con la senal bayesiana.</p>
       </section>
     </div>
+
+    <section class="detail-card actionability-card">
+      <div class="actionability-head">
+        <div>
+          <p class="eyebrow">Red flag accionable</p>
+          <h3>De senal estadistica a pregunta verificable</h3>
+          <p>Esta ficha traduce el score bayesiano a una accion de revision. Sigue el criterio BID/DNCP: una red flag debe tener etapa, evidencia, nivel de amenaza, respuesta esperada y trazabilidad.</p>
+        </div>
+        ${actionabilityChip(row)}
+      </div>
+      ${actionabilityTable(row)}
+      <div class="actionability-next">
+        <div><strong>1. Verificar dato</strong><small>Confirmar unidad, catalogo, cantidad y descripcion tecnica.</small></div>
+        <div><strong>2. Revisar documentos</strong><small>Contrastar pliego, contrato, adjudicacion, adendas y condiciones de entrega.</small></div>
+        <div><strong>3. Registrar decision</strong><small>Marcar si la senal se confirma, se descarta o requiere mas evidencia.</small></div>
+      </div>
+    </section>
 
     <section class="detail-card">
       <h3>Como se calculo</h3>

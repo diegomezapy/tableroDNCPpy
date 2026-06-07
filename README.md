@@ -15,8 +15,8 @@ Priorizar revision humana sobre:
 - fichas explicativas clicables para entender cada clasificacion, con formula, tablas, graficos, pares comparables y lectura responsable.
 - registro minimo obligatorio de visita antes de entrar al panel.
 - vista de respaldo visible solo para admin `dmeza.py@gmail.com`.
-- explicacion visual del motor Bayes con flujo, medidores, curva posterior y fichas auditables.
-- metodologia ampliada con formulas, limitaciones y referencias bibliograficas.
+- explicacion visual del motor Bayes con flujo, medidores, curva posterior, red flags accionables y fichas auditables.
+- metodologia ampliada con formulas, limitaciones, accionabilidad BID/DNCP y referencias bibliograficas.
 
 Las alertas son senales estadisticas exploratorias. No constituyen denuncia, prueba de irregularidad ni dictamen legal.
 
@@ -71,9 +71,11 @@ Suavizado tipo Dirichlet sobre participacion entidad-proveedor, combinando monto
 
 ## Metodologia ampliada
 
-La pestana `Metodologia` documenta el fundamento bayesiano, referencia comparable, ratio observado, contraccion empirical Bayes, probabilidad posterior, intervalo posterior, concentracion entidad-proveedor, niveles de senal, limitaciones y bibliografia. Tambien incluye una figura visual alimentada por datos reales del ranking filtrado: toma un caso publicado, dibuja pares comparables del mismo codigo y unidad, muestra precio observado, referencia, ratio, intervalo posterior y probabilidad de superar el umbral. La tabla de aporte ciudadano explica como Bayes transforma datos abiertos masivos en una cola de revision priorizada, explicable y responsable.
+La pestana `Metodologia` documenta el fundamento bayesiano, referencia comparable, ratio observado, contraccion empirical Bayes, probabilidad posterior, intervalo posterior, concentracion entidad-proveedor, niveles de senal, red flags accionables, limitaciones y bibliografia. Tambien incluye una figura visual alimentada por datos reales del ranking filtrado: toma un caso publicado, dibuja pares comparables del mismo codigo y unidad, muestra precio observado, referencia, ratio, intervalo posterior y probabilidad de superar el umbral. La tabla de aporte ciudadano explica como Bayes transforma datos abiertos masivos en una cola de revision priorizada, explicable y responsable.
 
-Referencias conceptuales incluidas en la app: Bayes (1763), Efron y Morris (1972/1973), Gelman et al. `Bayesian Data Analysis`, Robert `The Bayesian Choice` y material sobre Dirichlet-multinomial para proporciones suavizadas.
+Las fichas de detalle incorporan una matriz accionable: familia de alerta, etapa del ciclo, regla operativa, evidencia, nivel de amenaza, respuesta sugerida, responsable, estado y cautela. El objetivo es usar la probabilidad bayesiana para ordenar revision ciudadana, no para declarar irregularidades.
+
+Referencias conceptuales incluidas en la app: Bayes (1763), Efron y Morris (1972/1973), Gelman et al. `Bayesian Data Analysis`, Robert `The Bayesian Choice`, De Michele y Vieyra (BID/DNCP, 2022) sobre red flags accionables y material sobre Dirichlet-multinomial para proporciones suavizadas.
 
 Los filtros laterales recalculan tambien la vista `Resumen`: KPIs, distribucion de niveles, top entidades, tarjetas del motor Bayes y senales principales reflejan los filtros activos.
 
