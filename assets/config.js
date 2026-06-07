@@ -1,6 +1,6 @@
 window.LICITABAYES_CONFIG = {
   appName: "LicitaBayes DNCP",
-  appVersion: "0.1.14",
+  appVersion: "0.1.15",
   adminEmail: "dmeza.py@gmail.com",
   dataBaseUrl: "data",
   githubPagesUrl: "https://diegomezapy.github.io/tableroDNCPpy/",

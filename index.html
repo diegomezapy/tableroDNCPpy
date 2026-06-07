@@ -262,6 +262,7 @@
                   <th>Precio</th>
                   <th>Referencia</th>
                   <th>Ratio</th>
+                  <th>Accion</th>
                   <th>Nota</th>
                 </tr>
               </thead>
@@ -428,6 +429,60 @@
           </div>
         </article>
 
+        <article class="panel methodology-wide actionability-panel">
+          <div class="actionability-method-head">
+            <p class="eyebrow">Red flags accionables</p>
+            <h2>De pescar patrones a capturar casos revisables</h2>
+            <p>La referencia BID/DNCP <em>From Fishing to Catching</em> propone que una alerta sea util solo si conecta datos, regla, etapa del proceso y respuesta esperada. LicitaBayes incorpora esa idea como capa ciudadana: no acusa, convierte una senal bayesiana en una ficha de accion verificable.</p>
+          </div>
+          <div class="actionability-layout">
+            <div class="actionability-flow">
+              <div><span>1</span><strong>Senal estadistica</strong><small>ratio, posterior, score e intervalo.</small></div>
+              <div><span>2</span><strong>Red flag accionable</strong><small>etapa, regla, evidencia y nivel de amenaza.</small></div>
+              <div><span>3</span><strong>Respuesta esperada</strong><small>observar, verificar, solicitar descargo o derivar.</small></div>
+              <div><span>4</span><strong>Feedback</strong><small>confirmar, descartar o mejorar referencia.</small></div>
+            </div>
+            <div class="table-wrap actionability-matrix-wrap">
+              <table class="actionability-matrix">
+                <thead>
+                  <tr>
+                    <th>Familia</th>
+                    <th>Etapa</th>
+                    <th>Evidencia minima</th>
+                    <th>Respuesta sugerida</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Precio atipico</td>
+                    <td>Adjudicacion / contrato publicado</td>
+                    <td>Precio, referencia, ratio, posterior, pares comparables.</td>
+                    <td>Revisar pliego, especificaciones, lote, cantidad y proveedor.</td>
+                  </tr>
+                  <tr>
+                    <td>Fraccionamiento / umbral</td>
+                    <td>Llamado y adjudicacion</td>
+                    <td>Montos justo bajo modalidad, item similar, entidad y anio fiscal.</td>
+                    <td>Agrupar procesos similares y contrastar modalidad aplicable.</td>
+                  </tr>
+                  <tr>
+                    <td>Adendas y pagos</td>
+                    <td>Contrato / ejecucion</td>
+                    <td>Adendas, pagos antes de firma o pagos sobre contrato.</td>
+                    <td>Verificar cronologia contractual y documentar observacion.</td>
+                  </tr>
+                  <tr>
+                    <td>Proveedor restringido</td>
+                    <td>Adjudicacion</td>
+                    <td>RUC/proveedor contra listas de sancion disponibles.</td>
+                    <td>Retener revision y derivar segun procedimiento institucional.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </article>
+
         <div class="methodology-grid">
           <article class="panel formula-card">
             <h2>1. Fundamento bayesiano</h2>
@@ -555,6 +610,11 @@
               <strong>Robert, C. P. (2007)</strong>
               <span>The Bayesian Choice.</span>
               <small>Fundamentos de inferencia bayesiana, decision y extensiones jerarquicas/empirical Bayes.</small>
+            </a>
+            <a target="_blank" rel="noreferrer" href="https://publications.iadb.org/en/fishing-catching-developing-actionable-red-flags-public-procurement-prevent-and-control-corruption">
+              <strong>De Michele, R. y Vieyra, J. C. (2022)</strong>
+              <span>From Fishing to Catching: Developing Actionable Red Flags in Public Procurement to Prevent and Control Corruption.</span>
+              <small>Referencia BID/DNCP sobre red flags accionables, niveles de amenaza, respuestas y trazabilidad en contrataciones publicas de Paraguay.</small>
             </a>
             <a target="_blank" rel="noreferrer" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4081639/">
               <strong>Dirichlet-multinomial</strong>
